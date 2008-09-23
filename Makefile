@@ -8,11 +8,16 @@ CLASSPATH = $(WTK)/lib/cldcapi11.jar:$(WTK)/lib/midpapi20.jar:$(WTK)/lib/jsr082.
 PROJECT = GullsView
 SOURCES = gullsview/*.java
 
+BTADDR = 00:22:98:1E:AD:91
+
+
 all: bnr
 
-bnr: jad run
+bnr: build run
 
-bnu: jad upload
+bnu: build upload
+
+build: jad
 
 javac:
 	rm -rf classes
@@ -37,7 +42,7 @@ run:
 	$(EMULATOR) -Xdescriptor:$(PROJECT).jad -Xdomain:manufacturer
 
 upload:
-	obexftp -b 00:22:98:1E:AD:91 -B 7 -p $(PROJECT).jar
+	obexftp -b $(BTADDR) -B 7 -p $(PROJECT).jar
 
 arch:
 	mkdir -p archive
