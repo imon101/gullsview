@@ -18,7 +18,7 @@ public abstract class MapCanvas extends Canvas {
 	protected int targetx = -1;
 	protected int targety = -1;
 	protected String message;
-	protected Map map;
+	protected int map;
 	protected boolean busy;
 	
 	public void init(Main main){
@@ -63,7 +63,7 @@ public abstract class MapCanvas extends Canvas {
 		if(this.cy >= this.ysegcount * this.segment) this.cy = (this.ysegcount * this.segment) - 1;
 	}
 	
-	public void setMap(Map map){
+	public void setMap(int map){
 		this.map = map;
 	}
 	
@@ -93,14 +93,7 @@ public abstract class MapCanvas extends Canvas {
 		return this.message;
 	}
 	
-	public void setBusy(boolean on){
-		boolean prev = this.busy;
-		this.busy = on;
-		if(on && !prev){
-			this.repaint();
-			this.serviceRepaints();
-		}
-	}
+	public abstract void setBusy(boolean on);
 	
 	protected void keyPressed(int code){
 		this.key(code, true);

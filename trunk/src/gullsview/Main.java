@@ -33,7 +33,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private Hashtable resources;
 	private Timer timer;
 	private TimerTask scrollTask;
-	private Hashtable maps;
+	private Vector maps;
 	private Map map;
 	private String dataPath;
 	private int overlayItemIndex;
@@ -81,7 +81,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				
 				this.resources = new Hashtable();
 				this.initResources();
-				this.maps = new Hashtable();
+				this.maps = new Vector();
 				this.inOverlayList = false;
 				
 				this.splash = new SplashScreen();
@@ -139,8 +139,8 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				this.poiForm.addCommand(this.okCommand);
 				this.poiForm.setCommandListener(this);
 				
-				this.canvas = new MidpMapCanvas();
-// this.canvas = new M3gMapCanvas();
+//				this.canvas = new MidpMapCanvas();
+this.canvas = new M3gMapCanvas();
 				this.canvas.init(this);
 				this.canvas.addCommand(this.exitCommand);
 				this.canvas.addCommand(this.overlayListCommand);
@@ -154,13 +154,13 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				
 this.dataPath = "c:/other/gullsview";
 				this.loadMaps();
-				this.setMap("brno15");
+				this.setMap(0);
 				
 				this.schedule(ACTION_HIDE_SPLASH, null, 2000, 0);
 				this.flagInit = true;
 				this.canvas.render();
 				
-this.locatorType = LOCATOR_JSR179;
+this.locatorType = LOCATOR_NONE;
 				this.initLocator();
 				if(this.locator != null) this.locator.start();
 			} catch(Exception e){
@@ -377,6 +377,7 @@ this.locatorType = LOCATOR_JSR179;
 				task.cancel();
 				this.scrollTask = null;
 			}
+			this.canvas.render();
 			break;
 		case ACTION_HIDE_MESSAGE:
 			String message = (String) data;
@@ -477,7 +478,7 @@ this.locatorType = LOCATOR_JSR179;
 		return this.getImage((this.getClass()).getResourceAsStream(path));
 	}
 	
-	private Image getFsImage(String path){
+	public Image getFsImage(String path){
 		FileConnection fc = null;
 		InputStream is = null;
 		try {
@@ -542,7 +543,7 @@ this.locatorType = LOCATOR_JSR179;
 		for(int i = 0; i < count; i++){
 			Map map = new Map();
 			map.load(in);
-			this.maps.put(map.name, map);
+			this.maps.addElement(map);
 		}
 	}
 	
@@ -574,17 +575,11 @@ this.locatorType = LOCATOR_JSR179;
 		}
 	}
 	
-	private Map getMap(String name){
-		Map m = (Map) this.maps.get(name);
-		if(m == null) throw new RuntimeException("Cannot find map by name \"" + name + "\"");
-		return m;
-	}
-	
-	private void setMap(String name){
+	private void setMap(int mapid){
 		Map orgmap = this.map;
-		this.map = this.getMap(name);
+		this.map = (Map) this.maps.elementAt(mapid);
 		this.canvas.setSegment(this.map.segment, this.map.xcount, this.map.ycount);
-		this.canvas.setMap(this.map);
+		this.canvas.setMap(mapid);
 		double rx, ry;
 		if(orgmap == null){
 			rx = map.defaultx;
@@ -609,7 +604,8 @@ System.out.println("setPosition(" + latitude + ", " + longitude + ")");
 		this.canvas.setPosition(mcoords[0], mcoords[1]);
 	}
 	
-	public Image getSegment(Map map, int x, int y){
+	public Image getSegment(int mapid, int x, int y){
+		Map map = (Map) this.maps.elementAt(mapid);
 		String name = map.name + "/" + x + "_" + y;
 		Image ret = this.getResImage("/data/" + name);
 		if(ret != null) return ret;
