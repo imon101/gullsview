@@ -21,7 +21,7 @@ public abstract class MapCanvas extends Canvas {
 	protected Map map;
 	protected boolean busy;
 	
-	protected MapCanvas(Main main){
+	public void init(Main main){
 		this.main = main;
 		this.fullscreen = false;
 		this.landscape = false;
