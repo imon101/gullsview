@@ -24,9 +24,10 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private static final int LOCATOR_JSR082 = 2;
 	
 	private boolean flagInit = false;
-	private boolean flagJsr75FC;
-	private boolean flagJsr082;
-	private boolean flagJsr179;
+	private boolean flagJsr75FC; // FileConn
+	private boolean flagJsr082; // BT
+	private boolean flagJsr179; // LAPI
+	private boolean flagJsr184; // M3G
 	
 	private Display display;
 	private Hashtable resources;
@@ -74,6 +75,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				this.flagJsr75FC = this.classExists("javax.microedition.io.file.FileConnection");
 				this.flagJsr082 = this.classExists("javax.bluetooth.LocalDevice");
 				this.flagJsr179 = this.classExists("javax.microedition.location.Location");
+				this.flagJsr184 = this.classExists("javax.microedition.m3g.Graphics3D");
 				
 				this.display = Display.getDisplay(this);
 				
@@ -137,7 +139,9 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				this.poiForm.addCommand(this.okCommand);
 				this.poiForm.setCommandListener(this);
 				
-				this.canvas = new MidpMapCanvas(this);
+				this.canvas = new MidpMapCanvas();
+// this.canvas = new M3gMapCanvas();
+				this.canvas.init(this);
 				this.canvas.addCommand(this.exitCommand);
 				this.canvas.addCommand(this.overlayListCommand);
 				this.canvas.addCommand(this.pathStartCommand);

@@ -3,7 +3,7 @@ JAR = jar
 WTK = /opt/wtk-2.5.2
 PREVERIFY = $(WTK)/bin/preverify
 EMULATOR = $(WTK)/bin/emulator
-CLASSPATH = $(WTK)/lib/cldcapi11.jar:$(WTK)/lib/midpapi20.jar:$(WTK)/lib/jsr082.jar:$(WTK)/lib/jsr179.jar:$(WTK)/lib/jsr75.jar
+CLASSPATH = $(WTK)/lib/cldcapi11.jar:$(WTK)/lib/midpapi20.jar:$(WTK)/lib/jsr082.jar:$(WTK)/lib/jsr179.jar:$(WTK)/lib/jsr75.jar:$(WTK)/lib/jsr184.jar
 
 PROJECT = GullsView
 SOURCES = gullsview/*.java

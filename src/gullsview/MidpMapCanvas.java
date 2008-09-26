@@ -13,8 +13,8 @@ public class MidpMapCanvas extends MapCanvas {
 	private boolean painting;
 	private Font font;
 	
-	public MidpMapCanvas(Main main){
-		super(main);
+	public void init(Main main){
+		super.init(main);
 		this.busySprite = new Sprite(this.main.getResImage("/busy.png"));
 		this.pointerSprite= new Sprite(this.main.getResImage("/pointer.png"));
 		this.poiSprite = new Sprite(this.main.getResImage("/poi.png"));
