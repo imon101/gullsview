@@ -137,7 +137,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				this.poiForm.addCommand(this.okCommand);
 				this.poiForm.setCommandListener(this);
 				
-				this.canvas = new MapCanvas(this);
+				this.canvas = new MidpMapCanvas(this);
 				this.canvas.addCommand(this.exitCommand);
 				this.canvas.addCommand(this.overlayListCommand);
 				this.canvas.addCommand(this.pathStartCommand);
