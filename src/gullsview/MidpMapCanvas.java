@@ -57,7 +57,12 @@ public class MidpMapCanvas extends MapCanvas {
 	
 	public void setBusy(boolean on){
 		if(this.painting) return;
-		super.setBusy(on);
+		boolean prev = this.busy;
+		this.busy = on;
+		if(on && !prev){
+			this.repaint();
+			this.serviceRepaints();
+		}
 	}
 	
 	public void render(){
@@ -81,7 +86,6 @@ public class MidpMapCanvas extends MapCanvas {
 		this.cx += rshiftx;
 		this.cy += rshifty;
 		this.correctPosition();
-		this.render();
 		return (rshiftx != 0) || (rshifty != 0);
 	}
 	
