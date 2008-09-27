@@ -6,7 +6,6 @@ import javax.microedition.m3g.*;
 
 public class M3gMapCanvas extends MapCanvas {
 	private Graphics3D g3d;
-private Background background;
 	private VertexBuffer quadv;
 	private IndexBuffer quadi;
 	private Appearance quada;
@@ -19,12 +18,11 @@ private Background background;
 	private int scrolla, scrollm;
 	private int rshifta, rshiftm;
 	private Texture2D bgTex;
+	private Sprite3D busySprite, pointerSprite, compassSprite;
 	
 	public void init(Main main){
 		super.init(main);
 		this.g3d = Graphics3D.getInstance();
-this.background = new Background();
-this.background.setColor(0x0088ccff);
 		int subdivision = 8;
 		this.quadv = this.createQuadVertexBuffer(subdivision);
 		this.quadi = this.createQuadIndexBuffer(subdivision);
@@ -34,12 +32,21 @@ this.background.setColor(0x0088ccff);
 		this.quada.setPolygonMode(polygonMode);
 		this.perspectiveCamera = new Camera();
 		this.perspectiveCamera.setPerspective(60, this.width / (float) this.height, 1, 10);
+		this.hudCamera = new Camera();
+		this.hudCamera.setGeneric(new Transform());
 		this.cameraTransform = new Transform();
 		this.tmpTransform = new Transform();
 		this.cameraDistance = 3;
 		this.scale = 7;
 		this.zenith = 70;
 		this.bgTex = new Texture2D(new Image2D(Image2D.RGB, this.main.getResImage("/bg.jpg")));
+		Appearance spriteAppearance = new Appearance();
+		CompositingMode spriteCompositingMode = new CompositingMode();
+		spriteCompositingMode.setBlending(CompositingMode.ALPHA);
+		spriteAppearance.setCompositingMode(spriteCompositingMode);
+		this.busySprite = new Sprite3D(false, new Image2D(Image2D.RGBA, this.main.getResImage("/busy.png")), spriteAppearance);
+		this.pointerSprite = new Sprite3D(false, new Image2D(Image2D.RGBA, this.main.getResImage("/pointer2.png")), spriteAppearance);
+		this.compassSprite = new Sprite3D(false, new Image2D(Image2D.RGBA, this.main.getResImage("/compass.png")), spriteAppearance);
 	}
 	
 	public void setSegment(int segment, int xcount, int ycount){
@@ -64,9 +71,6 @@ this.background.setColor(0x0088ccff);
 		}
 		positions.set(0, vcount, posbuf);
 		vb.setPositions(positions, 1f / subdivision, new float[]{ 0, 0, 0 });
-		// VertexArray normals = new VertexArray(4, 3, 1);
-		// normals.set(0, 4, new byte[]{ 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1 });
-		// this.vb.setNormals(normals);
 		VertexArray texCoords = new VertexArray(vcount, 2, 1);
 		byte[] texbuf = new byte[vcount * 2];
 		for(byte y = 0; y < count; y++){
@@ -110,12 +114,13 @@ this.background.setColor(0x0088ccff);
 		try {
 			this.g3d.bindTarget(g, false, Graphics3D.ANTIALIAS);
 			if(this.busy){
-				
+				this.renderHudSprite(this.busySprite, 0, 0, 0);
 				return;
 			}
-this.g3d.clear(this.background);
 			this.g3d.setCamera(this.perspectiveCamera, this.cameraTransform);
 			this.processSegments(true);
+			// this.renderHudSprite(this.pointerSprite);
+this.renderHudSprite(this.compassSprite, 0, 0, 30);
 		} finally {
 			this.g3d.releaseTarget();
 		}
@@ -152,6 +157,16 @@ this.g3d.clear(this.background);
 		this.tmpTransform.postRotate(this.azimuth, 0, 0, -1);
 		this.tmpTransform.postTranslate(-(x / (float) this.segment), -(y / (float) this.segment), 0);
 		this.g3d.render(this.quadv, this.quadi, this.quada, this.tmpTransform);
+	}
+	
+	private void renderHudSprite(Sprite3D sprite, int x, int y, int angle){
+sprite.postRotate(angle, 0, 0, 1);
+		this.tmpTransform.setIdentity();
+//		this.tmpTransform.postTranslate(x, y, 0);
+//		this.tmpTransform.postRotate(angle, 0, 0, 1);
+		this.g3d.setCamera(this.hudCamera, this.tmpTransform);
+//		this.tmpTransform.setIdentity();
+		this.g3d.render(sprite, this.tmpTransform);
 	}
 	
 	protected void scrollCommand(int dx, int dy, boolean pressed){
