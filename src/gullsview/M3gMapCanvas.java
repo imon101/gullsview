@@ -6,35 +6,45 @@ import javax.microedition.m3g.*;
 
 public class M3gMapCanvas extends MapCanvas {
 	private Graphics3D g3d;
-	private Background background;
+private Background background;
 	private VertexBuffer quadv;
 	private IndexBuffer quadi;
 	private Appearance quada;
-	private Camera camera;
+	private Camera perspectiveCamera, hudCamera;
 	private float azimuth;
 	private float zenith;
 	private Transform cameraTransform, tmpTransform;
 	private float cameraDistance, scale;
 	private TextureCache cache;
+	private int scrolla, scrollm;
+	private int rshifta, rshiftm;
+	private Texture2D bgTex;
 	
 	public void init(Main main){
 		super.init(main);
 		this.g3d = Graphics3D.getInstance();
-		this.background = new Background();
-		this.background.setColor(0x0088ccff);
+this.background = new Background();
+this.background.setColor(0x0088ccff);
 		this.quadv = this.createQuadVertexBuffer();
 		this.quadi = this.createQuadIndexBuffer();
 		this.quada = new Appearance();
 		PolygonMode polygonMode = new PolygonMode();
 		polygonMode.setWinding(PolygonMode.WINDING_CW);
 		this.quada.setPolygonMode(polygonMode);
-		this.camera = new Camera();
-		this.camera.setPerspective(60, this.width / (float) this.height, 1, 10);
+		this.perspectiveCamera = new Camera();
+		this.perspectiveCamera.setPerspective(60, this.width / (float) this.height, 1, 10);
 		this.cameraTransform = new Transform();
 		this.tmpTransform = new Transform();
 		this.cameraDistance = 3;
 		this.scale = 5;
-		this.cache = new TextureCache(9, this);
+		this.zenith = 60;
+		this.bgTex = new Texture2D(new Image2D(Image2D.RGB, this.main.getResImage("/bg.jpg")));
+	}
+	
+	public void setSegment(int segment, int xcount, int ycount){
+		super.setSegment(segment, xcount, ycount);
+		int count = 9;
+		this.cache = new TextureCache(count, this);
 	}
 	
 	private VertexBuffer createQuadVertexBuffer(){
@@ -48,7 +58,7 @@ public class M3gMapCanvas extends MapCanvas {
 		VertexArray texCoords = new VertexArray(4, 2, 1);
 		texCoords.set(0, 4, new byte[]{ 0, 0, 1, 0, 1, 1, 0, 1 });
 		vb.setTexCoords(0, texCoords, 1, new float[]{ 0, 0 });
-vb.setDefaultColor(0x00ffffff);
+		vb.setDefaultColor(0x00ffffff);
 		return vb;
 	}
 	
@@ -56,22 +66,42 @@ vb.setDefaultColor(0x00ffffff);
 		return new TriangleStripArray(new int[]{ 0, 1, 2, 0, 2, 3 }, new int[]{ 3, 3 });
 	}
 	
-	public void paint(Graphics g){
+	public void paint2(Graphics g){
 		try {
 			this.g3d.bindTarget(g, false, Graphics3D.ANTIALIAS);
-			this.g3d.clear(this.background);
-			this.g3d.setCamera(this.camera, this.cameraTransform);
-			this.renderSegment(0, 0, 255, -255);
-			this.renderSegment(1, 0, 0, -255);
-			this.renderSegment(0, 1, 255, 0);
-			this.renderSegment(1, 1, 0, 0);
+			if(this.busy){
+				
+				return;
+			}
+this.g3d.clear(this.background);
+			this.g3d.setCamera(this.perspectiveCamera, this.cameraTransform);
+			this.processSegments(true);
 		} finally {
 			this.g3d.releaseTarget();
 		}
 	}
 	
-	private void renderSegment(int sx, int sy, int x, int y){
+	private void processSegments(boolean render){
+		int csx = this.div(this.cx, this.segment);
+		int csy = this.div(this.cy, this.segment);
+		int cx = this.mod(this.cx, this.segment);
+		int cy = this.mod(this.cy, this.segment);
+		int level = 1;
+		for(int syi = -level; syi <= level; syi++){
+			int sy = csy + syi;
+			int y = cy + (syi * this.segment);
+			for(int sxi = -level; sxi <= level; sxi++){
+				int sx = csx + sxi;
+				int x = cx + (sxi * this.segment);
+				this.processSegment(sx, sy, x, y, render);
+			}
+		}
+	}
+	
+	private void processSegment(int sx, int sy, int x, int y, boolean render){
 		Texture2D tex = (Texture2D) this.cache.get(this.map, sx, sy);
+		if(!render) return;
+		if(tex == null) tex = this.bgTex;
 		this.quada.setTexture(0, tex);
 		this.tmpTransform.setIdentity();
 		this.tmpTransform.postTranslate(0, 0, -this.cameraDistance);
@@ -84,22 +114,40 @@ vb.setDefaultColor(0x00ffffff);
 	}
 	
 	protected void scrollCommand(int dx, int dy, boolean pressed){
-if(!pressed) return;
-this.azimuth += dx * 10;
-this.zenith += dy * 5;
-this.main.startScroll();
+		int orgscrolla = this.scrolla;
+		int orgscrollm = this.scrollm;
+		if(pressed){
+			this.scrolla += dx;
+			this.scrollm += dy;
+		} else {
+			this.scrolla -= dx;
+			this.scrollm -= dy;
+		}
+		if(this.scrolla < -1) this.scrolla = -1;
+		if(this.scrolla > 1) this.scrolla = 1;
+		if(this.scrollm < -1) this.scrollm = -1;
+		if(this.scrollm > 1) this.scrollm = 1;
+		if(((this.scrolla != 0) || (this.scrollm != 0)) && ((orgscrolla == 0) || (orgscrollm == 0)))
+			this.main.startScroll();
 	}
 	
 	public boolean scroll(){
-		return false;
+		int stepa = 10;
+		int stepm = 20;
+		int shifta = this.scrolla * stepa;
+		int shiftm = this.scrollm * stepm;
+		int coef = 6;
+		this.rshifta = ((this.rshifta * coef) + shifta) / (coef + 1);
+		this.rshiftm = ((this.rshiftm * coef) + shiftm) / (coef + 1);
+		this.azimuth += this.rshifta;
+		this.cx += (int)(Math.sin(Math.toRadians(this.azimuth)) * shiftm);
+		this.cy += (int)(Math.cos(Math.toRadians(this.azimuth)) * shiftm);
+		this.correctPosition();
+		return (this.rshifta != 0) || (this.rshiftm != 0);
 	}
 	
-	public void render(){
-this.repaint();
-	}
-	
-	public void setBusy(boolean on){
-		
+	public void prefetch(){
+		this.processSegments(false);
 	}
 }
 

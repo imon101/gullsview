@@ -10,7 +10,6 @@ public class MidpMapCanvas extends MapCanvas {
 	private Sprite busySprite, pointerSprite, poiSprite;
 	private int rshiftx, rshifty;
 	private Image bgImage;
-	private boolean painting;
 	private Font font;
 	
 	public void init(Main main){
@@ -20,7 +19,6 @@ public class MidpMapCanvas extends MapCanvas {
 		this.poiSprite = new Sprite(this.main.getResImage("/poi.png"));
 		this.bgImage = this.main.getResImage("/bg.jpg");
 		this.font = Font.getDefaultFont();
-		this.painting = false;
 	}
 	
 	public void setSegment(int segment, int xsegcount, int ysegcount){
@@ -30,22 +28,14 @@ public class MidpMapCanvas extends MapCanvas {
 	}
 	
 	protected void scrollCommand(int dx, int dy, boolean pressed){
-		int sdx, sdy;
-		if(this.landscape){
-			sdx = dy;
-			sdy = -dx;
-		} else {
-			sdx = dx;
-			sdy = dy;
-		}
 		int orgscrollx = this.scrollx;
 		int orgscrolly = this.scrolly;
 		if(pressed){
-			this.scrollx += sdx;
-			this.scrolly += sdy;
+			this.scrollx += dx;
+			this.scrolly += dy;
 		} else {
-			this.scrollx -= sdx;
-			this.scrolly -= sdy;
+			this.scrollx -= dx;
+			this.scrolly -= dy;
 		}
 		if(this.scrollx < -1) this.scrollx = -1;
 		if(this.scrollx > 1) this.scrollx = 1;
@@ -53,23 +43,6 @@ public class MidpMapCanvas extends MapCanvas {
 		if(this.scrolly > 1) this.scrolly = 1;
 		if(((this.scrollx != 0) || (this.scrolly != 0)) && ((orgscrollx == 0) && (orgscrolly == 0)))
 			this.main.startScroll();
-	}
-	
-	public void setBusy(boolean on){
-		if(this.painting) return;
-		boolean prev = this.busy;
-		this.busy = on;
-		if(on && !prev){
-			this.repaint();
-			this.serviceRepaints();
-		}
-	}
-	
-	public void render(){
-		this.prefetch();
-		this.setBusy(false);
-		this.repaint();
-		this.serviceRepaints();
 	}
 	
 	public void prefetch(){
@@ -89,45 +62,40 @@ public class MidpMapCanvas extends MapCanvas {
 		return (rshiftx != 0) || (rshifty != 0);
 	}
 	
-	public void paint(Graphics g){
-		this.painting = true;
-		try {
-			if(this.busy){
-				this.drawSprite(g, this.busySprite, 10, 10);
-				return;
-			}
-			
-			int hw = this.width / 2;
-			int hh = this.height / 2;
-			
-			this.processSegments(g);
-			
-			this.drawRidge(
-				g,
-				hw - this.cx - 7,
-				hh - this.cy - 7,
-				this.xsegcount * this.segment + 10,
-				this.ysegcount * this.segment + 10,
-				0xeeb457,
-				0xb23a00,
-				0x471700
-			);
-			
-			if((this.targetx >= 0) && (this.targety != 0)){
-				g.setColor(0xaa0000);
-				g.setStrokeStyle(Graphics.DOTTED);
-				this.drawLine(g, hw, hh, this.targetx - this.cx + hw, this.targety - this.cy + hh);
-				g.setStrokeStyle(Graphics.SOLID);
-			}
-			
-			this.drawOverlay(g);
-			
-			this.drawSprite(g, this.pointerSprite, hw, hh);
-			
-			this.drawHLabel(g, 3, 3, this.message, false);
-		} finally {
-			this.painting = false;
+	protected void paint2(Graphics g){
+		if(this.busy){
+			this.drawSprite(g, this.busySprite, 10, 10);
+			return;
 		}
+		
+		int hw = this.width / 2;
+		int hh = this.height / 2;
+		
+		this.processSegments(g);
+		
+		this.drawRidge(
+			g,
+			hw - this.cx - 7,
+			hh - this.cy - 7,
+			this.xsegcount * this.segment + 10,
+			this.ysegcount * this.segment + 10,
+			0xeeb457,
+			0xb23a00,
+			0x471700
+		);
+		
+		if((this.targetx >= 0) && (this.targety != 0)){
+			g.setColor(0xaa0000);
+			g.setStrokeStyle(Graphics.DOTTED);
+			this.drawLine(g, hw, hh, this.targetx - this.cx + hw, this.targety - this.cy + hh);
+			g.setStrokeStyle(Graphics.SOLID);
+		}
+		
+		this.drawOverlay(g);
+		
+		this.drawSprite(g, this.pointerSprite, hw, hh);
+		
+		this.drawHLabel(g, 3, 3, this.message, false);
 	}
 	
 	private void processSegments(Graphics g){
@@ -287,15 +255,6 @@ public class MidpMapCanvas extends MapCanvas {
 			}
 		}
 	}
-	
-	private int div(int a, int b){
-		return a < 0 ? (a / b) - 1 : a / b;
-	}
-	
-	private int mod(int a, int b){
-		return a < 0 ? (a % b) + b : a % b;
-	}
-	
 }
 
 
