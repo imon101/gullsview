@@ -109,7 +109,7 @@ this.g3d.clear(this.background);
 		this.tmpTransform.postScale(this.scale, this.scale, 1);
 		this.tmpTransform.postRotate(this.zenith, 1, 0, 0);
 		this.tmpTransform.postRotate(this.azimuth, 0, 0, -1);
-		this.tmpTransform.postTranslate(-(x / (float) this.segment), -(y / this.segment), 0);
+		this.tmpTransform.postTranslate(-(x / (float) this.segment), -(y / (float) this.segment), 0);
 		this.g3d.render(this.quadv, this.quadi, this.quada, this.tmpTransform);
 	}
 	
@@ -140,7 +140,7 @@ this.g3d.clear(this.background);
 		this.rshifta = ((this.rshifta * coef) + shifta) / (coef + 1);
 		this.rshiftm = ((this.rshiftm * coef) + shiftm) / (coef + 1);
 		this.azimuth += this.rshifta;
-		this.cx += (int)(Math.sin(Math.toRadians(this.azimuth)) * shiftm);
+		this.cx -= (int)(Math.sin(Math.toRadians(this.azimuth)) * shiftm);
 		this.cy += (int)(Math.cos(Math.toRadians(this.azimuth)) * shiftm);
 		this.correctPosition();
 		return (this.rshifta != 0) || (this.rshiftm != 0);
