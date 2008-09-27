@@ -43,7 +43,7 @@ this.background.setColor(0x0088ccff);
 	
 	public void setSegment(int segment, int xcount, int ycount){
 		super.setSegment(segment, xcount, ycount);
-		int count = 9;
+		int count = 15;
 		this.cache = new TextureCache(count, this);
 	}
 	
@@ -88,10 +88,10 @@ this.g3d.clear(this.background);
 		int cy = this.mod(this.cy, this.segment);
 		int level = 1;
 		for(int syi = -level; syi <= level; syi++){
-			int sy = csy + syi;
+			int sy = csy - syi;
 			int y = cy + (syi * this.segment);
 			for(int sxi = -level; sxi <= level; sxi++){
-				int sx = csx + sxi;
+				int sx = csx - sxi;
 				int x = cx + (sxi * this.segment);
 				this.processSegment(sx, sy, x, y, render);
 			}

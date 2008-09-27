@@ -475,6 +475,7 @@ this.locatorType = LOCATOR_NONE;
 	}
 	
 	public Image getResImage(String path){
+System.out.println("Loading image " + path);
 		return this.getImage((this.getClass()).getResourceAsStream(path));
 	}
 	
