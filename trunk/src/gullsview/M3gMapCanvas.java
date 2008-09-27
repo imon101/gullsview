@@ -25,19 +25,20 @@ private Background background;
 		this.g3d = Graphics3D.getInstance();
 this.background = new Background();
 this.background.setColor(0x0088ccff);
-		this.quadv = this.createQuadVertexBuffer();
-		this.quadi = this.createQuadIndexBuffer();
+		int subdivision = 8;
+		this.quadv = this.createQuadVertexBuffer(subdivision);
+		this.quadi = this.createQuadIndexBuffer(subdivision);
 		this.quada = new Appearance();
 		PolygonMode polygonMode = new PolygonMode();
-		polygonMode.setWinding(PolygonMode.WINDING_CW);
+		polygonMode.setWinding(PolygonMode.WINDING_CCW);
 		this.quada.setPolygonMode(polygonMode);
 		this.perspectiveCamera = new Camera();
 		this.perspectiveCamera.setPerspective(60, this.width / (float) this.height, 1, 10);
 		this.cameraTransform = new Transform();
 		this.tmpTransform = new Transform();
 		this.cameraDistance = 3;
-		this.scale = 5;
-		this.zenith = 60;
+		this.scale = 7;
+		this.zenith = 70;
 		this.bgTex = new Texture2D(new Image2D(Image2D.RGB, this.main.getResImage("/bg.jpg")));
 	}
 	
@@ -47,23 +48,62 @@ this.background.setColor(0x0088ccff);
 		this.cache = new TextureCache(count, this);
 	}
 	
-	private VertexBuffer createQuadVertexBuffer(){
+	private VertexBuffer createQuadVertexBuffer(int subdivision){
 		VertexBuffer vb = new VertexBuffer();
-		VertexArray positions = new VertexArray(4, 3, 1);
-		positions.set(0, 4, new byte[]{ 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0 });
-		vb.setPositions(positions, 1, new float[]{ 0, 0, 0 });
+		int count = subdivision + 1;
+		int vcount = count * count;
+		VertexArray positions = new VertexArray(vcount, 3, 1);
+		byte[] posbuf = new byte[vcount * 3];
+		for(byte y = 0; y < count; y++){
+			for(byte x = 0; x < count; x++){
+				int offset = ((y * count) + x) * 3;
+				posbuf[offset] = x;
+				posbuf[offset + 1] = y;
+				posbuf[offset + 2] = 0;
+			}
+		}
+		positions.set(0, vcount, posbuf);
+		vb.setPositions(positions, 1f / subdivision, new float[]{ 0, 0, 0 });
 		// VertexArray normals = new VertexArray(4, 3, 1);
 		// normals.set(0, 4, new byte[]{ 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1 });
 		// this.vb.setNormals(normals);
-		VertexArray texCoords = new VertexArray(4, 2, 1);
-		texCoords.set(0, 4, new byte[]{ 0, 0, 1, 0, 1, 1, 0, 1 });
-		vb.setTexCoords(0, texCoords, 1, new float[]{ 0, 0 });
+		VertexArray texCoords = new VertexArray(vcount, 2, 1);
+		byte[] texbuf = new byte[vcount * 2];
+		for(byte y = 0; y < count; y++){
+			for(byte x = 0; x < count; x++){
+				int offset = ((y * count) + x) * 2;
+				texbuf[offset] = x;
+				texbuf[offset + 1] = y;
+			}
+		}
+		texCoords.set(0, vcount, texbuf);
+		vb.setTexCoords(0, texCoords, 1f / subdivision, new float[]{ 0, 0 });
 		vb.setDefaultColor(0x00ffffff);
 		return vb;
 	}
 	
-	private IndexBuffer createQuadIndexBuffer(){
-		return new TriangleStripArray(new int[]{ 0, 1, 2, 0, 2, 3 }, new int[]{ 3, 3 });
+	private IndexBuffer createQuadIndexBuffer(int subdivision){
+		int count = subdivision + 1;
+		int tcount = (subdivision * subdivision) * 2;
+		int[] indices = new int[tcount * 3];
+		for(int y = 0; y < subdivision; y++){
+			for(int x = 0; x < subdivision; x++){
+				int offset = ((y * subdivision) + x) * 6;
+				int a = (y * count) + x;
+				int b = (y * count) + (x + 1);
+				int c = ((y + 1) * count) + x;
+				int d = ((y + 1) * count) + (x + 1);
+				indices[offset] = a;
+				indices[offset + 1] = c;
+				indices[offset + 2] = b;
+				indices[offset + 3] = d;
+				indices[offset + 4] = b;
+				indices[offset + 5] = c;
+			}
+		}
+		int[] lengths = new int[tcount];
+		for(int i = 0; i < tcount; i++) lengths[i] = 3;
+		return new TriangleStripArray(indices, lengths);
 	}
 	
 	public void paint2(Graphics g){
@@ -104,6 +144,7 @@ this.g3d.clear(this.background);
 		if(tex == null) tex = this.bgTex;
 		this.quada.setTexture(0, tex);
 		this.tmpTransform.setIdentity();
+		if(this.landscape) this.tmpTransform.postRotate(90, 0, 0, -1);
 		this.tmpTransform.postTranslate(0, 0, -this.cameraDistance);
 		this.tmpTransform.postScale(1, -1, 1);
 		this.tmpTransform.postScale(this.scale, this.scale, 1);
