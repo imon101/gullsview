@@ -20,6 +20,7 @@ public abstract class MapCanvas extends Canvas {
 	protected String message;
 	protected int map;
 	protected boolean busy;
+	private boolean painting;
 	
 	public void init(Main main){
 		this.main = main;
@@ -33,6 +34,7 @@ public abstract class MapCanvas extends Canvas {
 		if(this.maxWidth < this.getWidth()) this.maxWidth = this.getWidth();
 		if(this.maxHeight < this.getHeight()) this.maxHeight = this.getHeight();
 		this.busy = false;
+		this.painting = false;
 	}
 	
 	public void setSegment(int segment, int xsegcount, int ysegcount){
@@ -93,7 +95,15 @@ public abstract class MapCanvas extends Canvas {
 		return this.message;
 	}
 	
-	public abstract void setBusy(boolean on);
+	public void setBusy(boolean on){
+		if(this.painting) return;
+		boolean prev = this.busy;
+		this.busy = on;
+		if(on && !prev){
+			this.repaint();
+			this.serviceRepaints();
+		}
+	}
 	
 	protected void keyPressed(int code){
 		this.key(code, true);
@@ -106,28 +116,28 @@ public abstract class MapCanvas extends Canvas {
 	private void key(int code, boolean pressed){
 		switch(code){
 		case KEY_NUM2:
-			this.scrollCommand(0, -1, pressed);
+			this.scrollCommandRaw(0, -1, pressed);
 			break;
 		case KEY_NUM8:
-			this.scrollCommand(0, 1, pressed);
+			this.scrollCommandRaw(0, 1, pressed);
 			break;
 		case KEY_NUM4:
-			this.scrollCommand(-1, 0, pressed);
+			this.scrollCommandRaw(-1, 0, pressed);
 			break;
 		case KEY_NUM6:
-			this.scrollCommand(1, 0, pressed);
+			this.scrollCommandRaw(1, 0, pressed);
 			break;
 		case KEY_NUM1:
-			this.scrollCommand(-1, -1, pressed);
+			this.scrollCommandRaw(-1, -1, pressed);
 			break;
 		case KEY_NUM3:
-			this.scrollCommand(1, -1, pressed);
+			this.scrollCommandRaw(1, -1, pressed);
 			break;
 		case KEY_NUM7:
-			this.scrollCommand(-1, 1, pressed);
+			this.scrollCommandRaw(-1, 1, pressed);
 			break;
 		case KEY_NUM9:
-			this.scrollCommand(1, 1, pressed);
+			this.scrollCommandRaw(1, 1, pressed);
 			break;
 		case KEY_STAR:
 			if(!pressed) return;
@@ -146,16 +156,16 @@ public abstract class MapCanvas extends Canvas {
 			int action = this.getGameAction(code);
 			switch(action){
 			case UP:
-				this.scrollCommand(0, -1, pressed);
+				this.scrollCommandRaw(0, -1, pressed);
 				break;
 			case DOWN:
-				this.scrollCommand(0, 1, pressed);
+				this.scrollCommandRaw(0, 1, pressed);
 				break;
 			case LEFT:
-				this.scrollCommand(-1, 0, pressed);
+				this.scrollCommandRaw(-1, 0, pressed);
 				break;
 			case RIGHT:
-				this.scrollCommand(1, 0, pressed);
+				this.scrollCommandRaw(1, 0, pressed);
 				break;
 			case FIRE:
 				if(pressed) this.main.addTracePoint();
@@ -165,16 +175,46 @@ public abstract class MapCanvas extends Canvas {
 		}
 	}
 	
+	private void scrollCommandRaw(int dx, int dy, boolean pressed){
+		this.scrollCommand(this.landscape ? dy : dx, this.landscape ? -dx : dy, pressed);
+	}
+	
+	public void render(){
+		this.prefetch();
+		this.setBusy(false);
+		this.repaint();
+		this.serviceRepaints();
+	}
+	
 	private void updateDim(){
 		this.width = this.landscape ? this.getHeight() : this.getWidth();
 		this.height = this.landscape ? this.getWidth() : this.getHeight();
 	}
 	
+	public void paint(Graphics g){
+		this.painting = true;
+		try {
+			this.paint2(g);
+		} finally {
+			this.painting = false;
+		}
+	}
+	
+	protected int div(int a, int b){
+		return a < 0 ? (a / b) - 1 : a / b;
+	}
+	
+	protected int mod(int a, int b){
+		return a < 0 ? (a % b) + b : a % b;
+	}
+	
+	protected abstract void paint2(Graphics g);
+	
 	protected abstract void scrollCommand(int dx, int dy, boolean pressed);
 	
 	public abstract boolean scroll();
 	
-	public abstract void render();
+	public abstract void prefetch();
 }
 
 
