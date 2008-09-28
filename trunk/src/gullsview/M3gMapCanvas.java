@@ -6,53 +6,68 @@ import javax.microedition.m3g.*;
 
 public class M3gMapCanvas extends MapCanvas {
 	private Graphics3D g3d;
-	private VertexBuffer quadv;
-	private IndexBuffer quadi;
-	private Appearance quada;
+	
+	private VertexBuffer mapQuadv, hudQuadv;
+	private IndexBuffer mapQuadi, hudQuadi;
+	private Appearance mapQuada, hudQuada;
+	
 	private Camera perspectiveCamera, hudCamera;
 	private float azimuth;
 	private float zenith;
 	private Transform cameraTransform, tmpTransform;
-	private float cameraDistance, scale;
+	private float cameraFov, cameraDistance, cameraVertShift, scale;
+	
 	private TextureCache cache;
+	
 	private int scrolla, scrollm;
 	private int rshifta, rshiftm;
-	private Texture2D bgTex;
-	private Sprite3D busySprite, pointerSprite, compassSprite;
+	
+	private Texture2D bgTex, compassTex;
+	private Sprite3D pointerSprite, busySprite;
 	
 	public void init(Main main){
-		super.init(main);
-		this.g3d = Graphics3D.getInstance();
-		int subdivision = 8;
-		this.quadv = this.createQuadVertexBuffer(subdivision);
-		this.quadi = this.createQuadIndexBuffer(subdivision);
-		this.quada = new Appearance();
-		PolygonMode polygonMode = new PolygonMode();
-		polygonMode.setWinding(PolygonMode.WINDING_CCW);
-		this.quada.setPolygonMode(polygonMode);
-		this.perspectiveCamera = new Camera();
-		this.perspectiveCamera.setPerspective(60, this.width / (float) this.height, 1, 10);
 		this.hudCamera = new Camera();
-		this.hudCamera.setGeneric(new Transform());
+		
+		super.init(main);
+		
+		this.g3d = Graphics3D.getInstance();
+		
+		int subdivision = 8;
+		this.mapQuadv = this.createQuadVertexBuffer(subdivision);
+		this.mapQuadi = this.createQuadIndexBuffer(subdivision);
+		this.mapQuada = this.createAppearance(PolygonMode.WINDING_CCW, CompositingMode.REPLACE);
+		
+		this.hudQuadv = this.createQuadVertexBuffer(1);
+		this.hudQuadi = this.createQuadIndexBuffer(1);
+		this.hudQuada = this.createAppearance(PolygonMode.WINDING_CCW, CompositingMode.MODULATE);
+		
+		this.perspectiveCamera = new Camera();
 		this.cameraTransform = new Transform();
-		this.tmpTransform = new Transform();
+		this.cameraFov = 60;
 		this.cameraDistance = 3;
-		this.scale = 7;
-		this.zenith = 70;
-		this.bgTex = new Texture2D(new Image2D(Image2D.RGB, this.main.getResImage("/bg.jpg")));
-		Appearance spriteAppearance = new Appearance();
-		CompositingMode spriteCompositingMode = new CompositingMode();
-		spriteCompositingMode.setBlending(CompositingMode.ALPHA);
-		spriteAppearance.setCompositingMode(spriteCompositingMode);
-		this.busySprite = new Sprite3D(false, new Image2D(Image2D.RGBA, this.main.getResImage("/busy.png")), spriteAppearance);
-		this.pointerSprite = new Sprite3D(false, new Image2D(Image2D.RGBA, this.main.getResImage("/pointer2.png")), spriteAppearance);
-		this.compassSprite = new Sprite3D(false, new Image2D(Image2D.RGBA, this.main.getResImage("/compass.png")), spriteAppearance);
+		this.cameraVertShift = 0;
+		this.scale = 5;
+		this.zenith = 60;
+		
+		this.tmpTransform = new Transform();
+		
+		this.bgTex = this.createTexture(Image2D.RGB, "/bg.jpg");
+		this.pointerSprite = this.createSprite("/pointer2.png");
+		this.busySprite = this.createSprite("/busy.png");
+		this.compassTex = this.createTexture(Image2D.RGBA, "/compass.png");
 	}
 	
 	public void setSegment(int segment, int xcount, int ycount){
 		super.setSegment(segment, xcount, ycount);
 		int count = 15;
 		this.cache = new TextureCache(count, this);
+	}
+	
+	protected void updateDim(){
+		super.updateDim();
+		Transform hudTransform = new Transform();
+		hudTransform.postScale(2f / this.getWidth(), 2f / this.getHeight(), 1);
+		this.hudCamera.setGeneric(hudTransform);
 	}
 	
 	private VertexBuffer createQuadVertexBuffer(int subdivision){
@@ -110,17 +125,44 @@ public class M3gMapCanvas extends MapCanvas {
 		return new TriangleStripArray(indices, lengths);
 	}
 	
+	private Appearance createAppearance(int winding, int blending){
+		Appearance appearance = new Appearance();
+		PolygonMode polygonMode = new PolygonMode();
+		polygonMode.setWinding(winding);
+		appearance.setPolygonMode(polygonMode);
+		CompositingMode compositingMode = new CompositingMode();
+		compositingMode.setBlending(blending);
+		appearance.setCompositingMode(compositingMode);
+		return appearance;
+	}
+	
+	private Texture2D createTexture(int imageFormat, String res){
+		return new Texture2D(new Image2D(imageFormat, this.main.getResImage(res)));
+	}
+	
+	private Sprite3D createSprite(String res){
+		Appearance appearance = new Appearance();
+		CompositingMode cm = new CompositingMode();
+		cm.setBlending(CompositingMode.ALPHA);
+		appearance.setCompositingMode(cm);
+		return new Sprite3D(false, new Image2D(Image2D.RGBA, this.main.getResImage(res)), appearance);
+	}
+	
 	public void paint2(Graphics g){
 		try {
 			this.g3d.bindTarget(g, false, Graphics3D.ANTIALIAS);
 			if(this.busy){
-				this.renderHudSprite(this.busySprite, 0, 0, 0);
+				this.renderHudSprite(this.busySprite, 20 - (this.width / 2), (this.height / 2) - 20);
 				return;
 			}
+			float aspectRatio = (float) this.getWidth() / (float) this.getHeight();
+			float fov = this.landscape ? this.cameraFov * aspectRatio : this.cameraFov;
+			this.perspectiveCamera.setPerspective(fov, aspectRatio, 1, 10);
+			// this.g3d.clear(new Background());
 			this.g3d.setCamera(this.perspectiveCamera, this.cameraTransform);
 			this.processSegments(true);
-			// this.renderHudSprite(this.pointerSprite);
-this.renderHudSprite(this.compassSprite, 0, 0, 30);
+			this.renderHudSprite(this.pointerSprite, 0, 0);
+			this.renderHudTex(this.compassTex, 30 - (this.width / 2), 30 - (this.height / 2), this.azimuth, 1);
 		} finally {
 			this.g3d.releaseTarget();
 		}
@@ -147,25 +189,40 @@ this.renderHudSprite(this.compassSprite, 0, 0, 30);
 		Texture2D tex = (Texture2D) this.cache.get(this.map, sx, sy);
 		if(!render) return;
 		if(tex == null) tex = this.bgTex;
-		this.quada.setTexture(0, tex);
+		tex.setFiltering(Texture2D.FILTER_LINEAR, Texture2D.FILTER_LINEAR);
+		this.mapQuada.setTexture(0, tex);
 		this.tmpTransform.setIdentity();
 		if(this.landscape) this.tmpTransform.postRotate(90, 0, 0, -1);
-		this.tmpTransform.postTranslate(0, 0, -this.cameraDistance);
+		this.tmpTransform.postTranslate(0, this.cameraVertShift, -this.cameraDistance);
 		this.tmpTransform.postScale(1, -1, 1);
 		this.tmpTransform.postScale(this.scale, this.scale, 1);
 		this.tmpTransform.postRotate(this.zenith, 1, 0, 0);
 		this.tmpTransform.postRotate(this.azimuth, 0, 0, -1);
 		this.tmpTransform.postTranslate(-(x / (float) this.segment), -(y / (float) this.segment), 0);
-		this.g3d.render(this.quadv, this.quadi, this.quada, this.tmpTransform);
+		this.g3d.render(this.mapQuadv, this.mapQuadi, this.mapQuada, this.tmpTransform);
 	}
 	
-	private void renderHudSprite(Sprite3D sprite, int x, int y, int angle){
-sprite.postRotate(angle, 0, 0, 1);
+	private void renderHudTex(Texture2D tex, float x, float y, float angle, float scale){
+		Image2D image = tex.getImage();
+		float tw = image.getWidth() * scale;
+		float th = image.getHeight() * scale;
+		tex.setBlending(Texture2D.FUNC_DECAL);
+		tex.setFiltering(Texture2D.FILTER_LINEAR, Texture2D.FILTER_LINEAR);
+		this.hudQuada.setTexture(0, tex);
 		this.tmpTransform.setIdentity();
-//		this.tmpTransform.postTranslate(x, y, 0);
-//		this.tmpTransform.postRotate(angle, 0, 0, 1);
 		this.g3d.setCamera(this.hudCamera, this.tmpTransform);
-//		this.tmpTransform.setIdentity();
+		this.tmpTransform.postTranslate(x, y, 0);
+		this.tmpTransform.postRotate(angle, 0, 0, 1);
+		this.tmpTransform.postScale(1, -1, 0);
+		this.tmpTransform.postTranslate(-tw / 2, -th / 2, 0);
+		this.tmpTransform.postScale(tw, th, 0);
+		this.g3d.render(this.hudQuadv, this.hudQuadi, this.hudQuada, this.tmpTransform);
+	}
+	
+	private void renderHudSprite(Sprite3D sprite, float x, float y){
+		this.tmpTransform.setIdentity();
+		this.g3d.setCamera(this.hudCamera, this.tmpTransform);
+		this.tmpTransform.postTranslate(x, y, 0);
 		this.g3d.render(sprite, this.tmpTransform);
 	}
 	
@@ -196,8 +253,8 @@ sprite.postRotate(angle, 0, 0, 1);
 		this.rshifta = ((this.rshifta * coef) + shifta) / (coef + 1);
 		this.rshiftm = ((this.rshiftm * coef) + shiftm) / (coef + 1);
 		this.azimuth += this.rshifta;
-		this.cx -= (int)(Math.sin(Math.toRadians(this.azimuth)) * shiftm);
-		this.cy += (int)(Math.cos(Math.toRadians(this.azimuth)) * shiftm);
+		this.cx -= (int)(Math.sin(Math.toRadians(this.azimuth)) * this.rshiftm);
+		this.cy += (int)(Math.cos(Math.toRadians(this.azimuth)) * this.rshiftm);
 		this.correctPosition();
 		return (this.rshifta != 0) || (this.rshiftm != 0);
 	}
