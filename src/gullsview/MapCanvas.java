@@ -186,7 +186,7 @@ public abstract class MapCanvas extends Canvas {
 		this.serviceRepaints();
 	}
 	
-	private void updateDim(){
+	protected void updateDim(){
 		this.width = this.landscape ? this.getHeight() : this.getWidth();
 		this.height = this.landscape ? this.getWidth() : this.getHeight();
 	}
