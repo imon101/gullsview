@@ -1,6 +1,6 @@
 package gullsview;
 
-import java.util.*;
+import java.io.*;
 
 
 public class StdioConsole extends Console {
@@ -11,9 +11,13 @@ public class StdioConsole extends Console {
 	}
 	
 	public String input(String id, String question, String def){
-		System.out.print(question + " >>> ");
-		String value = this.br.readLine();
-		return (value == null) ? def : value;
+		try {
+			System.out.print(question + " >>> ");
+			String value = this.br.readLine();
+			return (value == null) ? def : value;
+		} catch (IOException e){
+			throw new RuntimeException("Error in input", e);
+		}
 	}
 	
 	public void print(String text, String color){
