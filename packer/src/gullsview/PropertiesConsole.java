@@ -1,10 +1,22 @@
 package gullsview;
 
+import java.io.*;
 import java.util.*;
 
 
 public class PropertiesConsole extends Console {
 	private Properties properties;
+	
+	public PropertiesConsole(String path) throws IOException {
+		this(new File(path));
+	}
+	
+	public PropertiesConsole(File file) throws IOException {
+		this(new Properties());
+		FileInputStream fis = new FileInputStream(file);
+		this.properties.load(fis);
+		fis.close();
+	}
 	
 	public PropertiesConsole(Properties properties){
 		this.properties = properties;
