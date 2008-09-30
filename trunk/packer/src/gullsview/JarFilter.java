@@ -31,7 +31,7 @@ public class JarFilter {
 		this.filter.processManifest(matts);
 		ZipOutputStream zos = new ZipOutputStream(this.out);
 		zos.putNextEntry(new ZipEntry("META-INF/MANIFEST.MF"));
-		this.writeManifest(matts, zos);
+		writeManifest(matts, zos);
 		JarEntry entry;
 		byte[] buffer = new byte[1024];
 		int count;
@@ -48,7 +48,7 @@ public class JarFilter {
 		return matts;
 	}
 	
-	private void writeManifest(Map map, OutputStream out) throws IOException {
+	public static void writeManifest(Map map, OutputStream out) throws IOException {
 		PrintWriter pw = new PrintWriter(new OutputStreamWriter(out));
 		for(Object key : map.keySet()){
 			pw.print((String) key);
