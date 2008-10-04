@@ -2,9 +2,7 @@ PROJECT = GullsViewPacker
 SOURCES = gullsview/*.java
 
 
-all: bnr
-
-bnr: build run
+all: build
 
 build: jar
 	cp $(PROJECT).jar ..
@@ -20,5 +18,9 @@ jar: javac
 
 run:
 	java -jar $(PROJECT).jar -stdio
+
+clean:
+	rm -rf classes
+	rm -f $(PROJECT).jar
 
 
