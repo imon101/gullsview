@@ -13,7 +13,7 @@ public class JarFilter {
 	
 	public interface Filter {
 		public boolean processEntry(String name);
-		public void processManifest(Map map);
+		public void processManifest(java.util.Map map);
 	}
 	
 	public JarFilter(InputStream in, OutputStream out, Filter filter){
@@ -22,11 +22,11 @@ public class JarFilter {
 		this.filter = filter;
 	}
 	
-	public Map run() throws IOException {
+	public java.util.Map run() throws IOException {
 		JarInputStream jis = new JarInputStream(this.in);
 		Manifest mf = jis.getManifest();
 		Attributes atts = mf.getMainAttributes();
-		Map matts = new HashMap();
+		java.util.Map matts = new HashMap();
 		for(Object key : atts.keySet()) matts.put(((Attributes.Name) key).toString(), atts.get(key));
 		this.filter.processManifest(matts);
 		ZipOutputStream zos = new ZipOutputStream(this.out);
@@ -48,7 +48,7 @@ public class JarFilter {
 		return matts;
 	}
 	
-	public static void writeManifest(Map map, OutputStream out) throws IOException {
+	public static void writeManifest(java.util.Map map, OutputStream out) throws IOException {
 		PrintWriter pw = new PrintWriter(new OutputStreamWriter(out));
 		for(Object key : map.keySet()){
 			pw.print((String) key);
