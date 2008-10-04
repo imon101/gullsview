@@ -22,6 +22,10 @@ public class PropertiesConsole extends Console {
 		this.properties = properties;
 	}
 	
+	protected boolean repeatQuestions(){
+		return false;
+	}
+	
 	public String input(String id, String question, String def){
 		String value = this.properties.getProperty(id);
 		return (value == null) ? def : value;
