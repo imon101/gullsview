@@ -45,4 +45,9 @@ run:
 	if [ -z "$(JAD)" ]; then echo *** Please set JAD environment variable ***; exit 1; fi
 	$(EMULATOR) -Xdescriptor:$(JAD) -Xdomain:manufacturer
 
+clean:
+	rm -rf classes
+	rm -rf preverified
+	rm -f $(PROJECT).mjar
+
 
