@@ -7,6 +7,7 @@ all: bnr
 bnr: build run
 
 build: jar
+	cp $(PROJECT).jar ..
 
 javac:
 	rm -rf classes

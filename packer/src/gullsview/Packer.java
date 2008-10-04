@@ -6,7 +6,7 @@ import java.util.*;
 
 public class Packer {
 	private Console console;
-	private Map<String, Set<String>> restrictions;
+	private java.util.Map<String, Set<String>> restrictions;
 	
 	public Packer(Console console) throws Exception {
 		this.console = console;
@@ -77,14 +77,14 @@ this.addRestrictedEntry("FC", "gullsview/");
 				return Packer.this.isRestricted(name) ? Packer.this.isAllowed(name, constraints) : true;
 			}
 			
-			public void processManifest(Map values){
+			public void processManifest(java.util.Map values){
 			}
 		};
 		InputStream in = (this.getClass()).getResourceAsStream("/GullsView.mjar");
 		String jarFileName = pathPrefix + ".jar";
 		OutputStream out = new FileOutputStream(jarFileName);
 		JarFilter jf = new JarFilter(in, out, filter);
-		Map jad = jf.run();
+		java.util.Map jad = jf.run();
 		File jar = new File(jarFileName);
 		jad.put("MIDlet-Jar-URL", jarFileName);
 		jad.put("MIDlet-Jar-Size", String.valueOf(jar.length()));
