@@ -43,8 +43,7 @@ this.addRestrictedEntry("FC", "gullsview/");
 	}
 	
 	public void run() throws Exception {
-		this.filterJars(".", true, true, true, true);
-		this.filterJars(".", false, false, false, false);
+		this.console.print(String.valueOf(this.console.inputBoolean("puff", null, true)), null);
 	}
 	
 	private void filterJars(String path, boolean fc, boolean bt, boolean lapi, boolean m3g) throws IOException {
@@ -84,7 +83,7 @@ this.addRestrictedEntry("FC", "gullsview/");
 		String jarFileName = pathPrefix + ".jar";
 		OutputStream out = new FileOutputStream(jarFileName);
 		JarFilter jf = new JarFilter(in, out, filter);
-		java.util.Map jad = jf.run();
+		java.util.Map<String, String> jad = jf.run();
 		File jar = new File(jarFileName);
 		jad.put("MIDlet-Jar-URL", jarFileName);
 		jad.put("MIDlet-Jar-Size", String.valueOf(jar.length()));

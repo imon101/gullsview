@@ -10,7 +10,7 @@ build: jar
 javac:
 	rm -rf classes
 	mkdir -p classes
-	cd src; javac -d ../classes $(SOURCES)
+	cd src; javac -d ../classes -Xlint:unchecked $(SOURCES)
 
 jar: javac
 	cd classes; jar -cfm ../$(PROJECT).jar ../$(PROJECT).mf *
