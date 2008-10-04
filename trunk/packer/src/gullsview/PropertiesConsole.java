@@ -22,7 +22,7 @@ public class PropertiesConsole extends Console {
 		this.properties = properties;
 	}
 	
-	protected boolean repeatQuestions(){
+	protected boolean retry(){
 		return false;
 	}
 	

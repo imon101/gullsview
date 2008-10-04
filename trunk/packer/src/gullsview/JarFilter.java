@@ -22,12 +22,12 @@ public class JarFilter {
 		this.filter = filter;
 	}
 	
-	public java.util.Map run() throws IOException {
+	public java.util.Map<String, String> run() throws IOException {
 		JarInputStream jis = new JarInputStream(this.in);
 		Manifest mf = jis.getManifest();
 		Attributes atts = mf.getMainAttributes();
-		java.util.Map matts = new HashMap();
-		for(Object key : atts.keySet()) matts.put(((Attributes.Name) key).toString(), atts.get(key));
+		java.util.Map<String, String> matts = new HashMap<String, String>();
+		for(Object key : atts.keySet()) matts.put(((Attributes.Name) key).toString(), (String) atts.get(key));
 		this.filter.processManifest(matts);
 		ZipOutputStream zos = new ZipOutputStream(this.out);
 		zos.putNextEntry(new ZipEntry("META-INF/MANIFEST.MF"));
