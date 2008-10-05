@@ -87,6 +87,8 @@ public abstract class Console {
 	public void errorRes(String resid){
 		this.errorRes(resid, null);
 	}
+	
+	public void close(){}
 }
 
 

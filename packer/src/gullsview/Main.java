@@ -26,6 +26,7 @@ public class Main {
 			if(console == null) console = new SwingConsole();
 			Packer packer = new Packer(console);
 			packer.run();
+			packer.close();
 		} catch (Exception e){
 			e.printStackTrace();
 		}

@@ -44,7 +44,14 @@ this.addRestrictedEntry("FC", "gullsview/");
 	}
 	
 	public void run() throws Exception {
-		this.console.print(String.valueOf(this.console.inputBoolean("puff", null, true)), null);
+		boolean flagFc = this.console.inputBoolean("enable-fc", null, false);
+		boolean flagBt = this.console.inputBoolean("enable-bt", null, false);
+		boolean flagLapi = this.console.inputBoolean("enable-lapi", null, false);
+		boolean flagM3g = this.console.inputBoolean("enable-m3g", null, false);
+	}
+	
+	public void close(){
+		this.console.close();
 	}
 	
 	private void filterJars(String path, boolean fc, boolean bt, boolean lapi, boolean m3g) throws IOException {
