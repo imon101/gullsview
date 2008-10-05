@@ -17,7 +17,7 @@ jar: javac
 	jar -uf $(PROJECT).jar -C ../javame GullsView.mjar
 
 run:
-	java -jar $(PROJECT).jar -stdio
+	java -jar $(PROJECT).jar
 
 clean:
 	rm -rf classes
