@@ -20,11 +20,11 @@ build:
 	cd javame; make build
 	cd packer; make build
 
-runmin: build
+runmin:
 	java -jar GullsViewPacker.jar -properties resource:/minimal.properties
 	cd javame; JAD=GullsView.jad make run
 
-runmax: build
+runmax:
 	java -jar GullsViewPacker.jar -properties resource:/maximal.properties
 	cd javame; JAD=GullsView_FC_BT_LAPI_M3G.jad make run
 

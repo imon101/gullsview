@@ -7,7 +7,7 @@ public abstract class Console {
 	private ResourceBundle resources;
 	
 	public Console(){
-		this.resources = ResourceBundle.getBundle("Resources");
+		this.resources = ResourceBundle.getBundle("gullsview.Resources");
 	}
 	
 	protected String r(String id){
@@ -58,9 +58,9 @@ public abstract class Console {
 		String sdef = def ? strue : sfalse;
 		String s = this.inputString(id, resid, sdef);
 		if(s == null) return def;
-		if(strue.equalsIgnoreCase(strue)){
+		if(strue.equalsIgnoreCase(s)){
 			return true;
-		} else if(sfalse.equalsIgnoreCase(sfalse)){
+		} else if(sfalse.equalsIgnoreCase(s)){
 			return false;
 		} else {
 			this.errorRes("error-not-boolean");
