@@ -2,7 +2,7 @@ PROJECT = GullsViewPacker
 SOURCES = gullsview/*.java
 
 
-all: build
+all: build run
 
 build: jar
 	cp $(PROJECT).jar ..
