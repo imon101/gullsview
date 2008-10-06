@@ -185,7 +185,7 @@ public class SwingConsole extends Console {
 	
 	public void close(){
 		this.printRes("please-close-window");
-		// this.dispose();
+		this.dispose();
 		this.frame = null;
 	}
 }
