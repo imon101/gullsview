@@ -10,7 +10,7 @@ import javax.microedition.rms.*;
 
 
 
-public class Main extends MIDlet implements CommandListener, Persistable {
+public class Main extends MIDlet implements CommandListener/*, Persistable*/ {
 	private static final int ACTION_HIDE_SPLASH = 1;
 	private static final int ACTION_SCROLL = 2;
 	private static final int ACTION_HIDE_MESSAGE = 3;
@@ -33,7 +33,6 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private Hashtable resources;
 	private Timer timer;
 	private TimerTask scrollTask;
-	private Vector maps;
 	private Map map;
 	private String dataPath;
 	private int overlayItemIndex;
@@ -43,6 +42,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private double targetLongitude = Double.NaN;
 	private int locatorType;
 	private Locator locator;
+	private FileSystem fileSystem;
 	
 	private SplashScreen splash;
 	private Form aboutForm;
@@ -51,7 +51,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private PointForm pathStartForm;
 	private PointForm pathContForm;
 	private PointForm poiForm;
-	private List mapList;
+	private MapList mapList;
 	
 	private Command okCommand;
 	private Command exitCommand;
@@ -67,21 +67,21 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private Command moveToCommand;
 	private Command setTargetCommand;
 	private Command cancelTargetCommand;
+	private Command mapSelectCommand;
 	
 	public void startApp(){
 		this.timer = new Timer();
 		if(!this.flagInit){
 			try {
-				this.flagJsr75FC = this.classExists("javax.microedition.io.file.FileConnection");
-				this.flagJsr082 = this.classExists("javax.bluetooth.LocalDevice");
-				this.flagJsr179 = this.classExists("javax.microedition.location.Location");
-				this.flagJsr184 = this.classExists("javax.microedition.m3g.Graphics3D");
+				this.flagJsr75FC = this.classExists("javax.microedition.io.file.FileConnection") && this.classExists("gullsview.FileSystemImpl");
+				this.flagJsr082 = this.classExists("javax.bluetooth.LocalDevice") && this.classExists("gullsview.Jsr082Locator");
+				this.flagJsr179 = this.classExists("javax.microedition.location.Location") && this.classExists("gullsview.Jsr179Locator");
+				this.flagJsr184 = this.classExists("javax.microedition.m3g.Graphics3D") && this.classExists("gullsview.M3gMapCanvas");
 				
 				this.display = Display.getDisplay(this);
 				
 				this.resources = new Hashtable();
 				this.initResources();
-				this.maps = new Vector();
 				this.inOverlayList = false;
 				
 				this.splash = new SplashScreen();
@@ -94,13 +94,14 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				this.pathStartCommand = new Command(this.getResource("path-start"), Command.SCREEN, 2);
 				this.pathContCommand = new Command(this.getResource("path-cont"), Command.SCREEN, 3);
 				this.poiCommand = new Command(this.getResource("poi"), Command.SCREEN, 4);
-				this.aboutCommand = new Command(this.getResource("about"), Command.SCREEN, 6);
-				this.pauseCommand = new Command(this.getResource("pause"), Command.SCREEN, 7);
+				this.cancelTargetCommand = new Command(this.getResource("cancel-target"), Command.SCREEN, 5);
+				this.mapSelectCommand = new Command(this.getResource("select-map"), Command.SCREEN, 6);
+				this.aboutCommand = new Command(this.getResource("about"), Command.SCREEN, 7);
+				this.pauseCommand = new Command(this.getResource("pause"), Command.SCREEN, 8);
 				this.editCommand = new Command(this.getResource("edit"), Command.ITEM, 1);
 				this.moveToCommand = new Command(this.getResource("move-to"), Command.ITEM, 2);
 				this.setTargetCommand = new Command(this.getResource("set-target"), Command.ITEM, 3);
 				this.removeCommand = new Command(this.getResource("remove"), Command.ITEM, 4);
-				this.cancelTargetCommand = new Command(this.getResource("cancel-target"), Command.SCREEN, 5);
 				
 				this.aboutForm = this.createAboutForm();
 				this.aboutForm.addCommand(this.backCommand);
@@ -139,20 +140,14 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				this.poiForm.addCommand(this.okCommand);
 				this.poiForm.setCommandListener(this);
 				
-//				this.canvas = new MidpMapCanvas();
-this.canvas = new M3gMapCanvas();
-				this.canvas.init(this);
-				this.canvas.addCommand(this.exitCommand);
-				this.canvas.addCommand(this.overlayListCommand);
-				this.canvas.addCommand(this.pathStartCommand);
-				this.canvas.addCommand(this.pathContCommand);
-				this.canvas.addCommand(this.poiCommand);
-				this.canvas.addCommand(this.cancelTargetCommand);
-				this.canvas.addCommand(this.aboutCommand);
-				this.canvas.addCommand(this.pauseCommand);
-				this.canvas.setCommandListener(this);
+				this.initCanvas(false);
 				
-this.dataPath = "c:/other/gullsview";
+				this.mapList = new MapList(this, this.getResource("select-map"));
+				this.mapList.addCommand(this.backCommand);
+				this.mapList.addCommand(this.okCommand);
+				
+				if(this.flagJsr75FC) this.fileSystem = (FileSystem) this.newInstance("gullsview.FileSystemImpl");
+				
 				this.loadMaps();
 				this.setMap(0);
 				
@@ -169,6 +164,25 @@ this.locatorType = LOCATOR_NONE;
 		} else {
 			this.show(this.canvas);
 		}
+	}
+	
+	private void initCanvas(boolean m3g){
+		if(this.canvas != null) this.canvas.dispose();
+		this.canvas = null;
+		if(!this.flagJsr184) m3g = false;
+		String className = m3g ? "gullsview.M3gMapCanvas" : "gullsview.MidpMapCanvas";
+		this.canvas = (MapCanvas) this.newInstance(className);
+		this.canvas.init(this);
+		this.canvas.addCommand(this.exitCommand);
+		this.canvas.addCommand(this.overlayListCommand);
+		this.canvas.addCommand(this.pathStartCommand);
+		this.canvas.addCommand(this.pathContCommand);
+		this.canvas.addCommand(this.poiCommand);
+		this.canvas.addCommand(this.cancelTargetCommand);
+		this.canvas.addCommand(this.aboutCommand);
+		this.canvas.addCommand(this.pauseCommand);
+		this.canvas.addCommand(this.mapSelectCommand);
+		this.canvas.setCommandListener(this);
 	}
 	
 	public void pauseApp(){
@@ -251,6 +265,10 @@ this.locatorType = LOCATOR_NONE;
 				this.overlayList.saveItem(this.overlayItemIndex, this.overlayItemInsert, type, name, latStr, lonStr, lat, lon, hue, color);
 				this.updateOverlay();
 				this.show(this.inOverlayList ? (Displayable) this.overlayList : (Displayable) this.canvas);
+			} else if(disp == this.mapList){
+				this.setMap(this.mapList.getSelectedMap());
+				this.inOverlayList = false;
+				this.show(this.canvas);
 			}
 		} else if(cmd == this.editCommand){
 			int index = this.overlayList.getSelectedIndex();
@@ -312,6 +330,15 @@ this.locatorType = LOCATOR_NONE;
 		}
 	}
 	
+	private Object newInstance(String className){
+		try {
+			return (Class.forName(className)).newInstance();
+		} catch (Exception e){
+			this.warning("Cannot create instance of " + className, e);
+			throw new RuntimeException("Cannot create instance of " + className + ": " + e.toString());
+		}
+	}
+	
 	private void alert(String message){
 		Alert alert = new Alert(this.getResource("alert"), message, null, AlertType.ERROR);
 		this.show(alert);
@@ -340,6 +367,10 @@ this.locatorType = LOCATOR_NONE;
 		String text = "WARNING: " + message;
 		if(e != null) text += " " + e.toString();
 		System.err.println(text);
+	}
+	
+	private void info(String message){
+		System.out.println("INFO: " + message);
 	}
 	
 	private void show(Displayable disp){
@@ -435,6 +466,7 @@ this.locatorType = LOCATOR_NONE;
 			this.setResource("available", "Dostupné");
 			this.setResource("temporarily-unavailable", "Dočasně nedostupné");
 			this.setResource("out-of-service", "Nefunkční");
+			this.setResource("select-map", "Výběr mapy");
 		} else {
 			this.setResource("exit", "Exit");
 			this.setResource("pause", "Pause");
@@ -470,51 +502,14 @@ this.locatorType = LOCATOR_NONE;
 			this.setResource("available", "Available");
 			this.setResource("temporarily-unavailable", "Temporarily unavailable");
 			this.setResource("out-of-service", "Out of service");
+			this.setResource("select-map", "Map selection");
 		}
 		// this.setResource("", "");
 	}
 	
 	public Image getResImage(String path){
-System.out.println("Loading image " + path);
-		return this.getImage((this.getClass()).getResourceAsStream(path));
-	}
-	
-	public Image getFsImage(String path){
-		FileConnection fc = null;
-		InputStream is = null;
-		try {
-			String uri = "file:///" + path;
-			try {
-				fc = (FileConnection) Connector.open(uri, Connector.READ);
-			} catch (Exception e){
-				this.error("Cannot open FileConnection for URI \"" + uri + "\"", e);
-				return null;
-			}
-			try {
-				if(!fc.exists()) return null;
-			} catch (Exception e){
-				this.error("Cannot check existence of file at URI \"" + uri + "\"", e);
-				return null;
-			}
-			try {
-				is = fc.openInputStream();
-			} catch (Exception e){
-				this.error("Cannot open input stream from file at URI \"" + uri + "\"", e);
-				return null;
-			}
-			return this.getImage(is);
-		} finally {
-			try {
-				if(is != null) is.close();
-			} catch (IOException e2){
-				this.warning("Error closing InputStream", e2);
-			}
-			try {
-				if(fc != null) fc.close();
-			} catch (IOException e2){
-				this.warning("Error closing FileConnection", e2);
-			}
-		}
+		this.info("Loading image " + path);
+		return getImage((this.getClass()).getResourceAsStream(path));
 	}
 	
 	private Image getImage(InputStream is){
@@ -529,56 +524,40 @@ System.out.println("Loading image " + path);
 		return image;
 	}
 	
+	public Image fileSystemGetImage(String path){
+		if(this.fileSystem == null) return null;
+		InputStream is = null;
+		try {
+			is = this.fileSystem.openInputStream(path);
+			return this.getImage(is);
+		} catch (IOException e){
+			this.error("Cannot open file", e);
+			return null;
+		} finally {
+			try {
+				this.fileSystem.closeInputStream(is);
+			} catch (IOException e){
+				this.warning("Error closing file", e);
+			}
+		}
+	}
+	
 	public void loadMaps(){
 		try {
-			String path = this.dataPath + "/maps";
-			if(!this.loadFs(this, path))
-				throw new Exception("File " + path + " does not exist");
+			String path = "maps";
+			this.resourceLoad(this.mapList, "/data/" + path);
+			if(this.fileSystem != null){
+				if(!this.fileSystem.load(this.mapList, path))
+					throw new Exception("File " + path + " does not exist");
+			}
 		} catch (Exception e){
 			this.error("Cannot load maps", e);
 		}
 	}
 	
-	public void load(DataInput in) throws IOException {
-		int count = in.readInt();
-		for(int i = 0; i < count; i++){
-			Map map = new Map();
-			map.load(in);
-			this.maps.addElement(map);
-		}
-	}
-	
-	public void save(DataOutput out){
-		throw new RuntimeException("Unimplemented");
-	}
-	
-	private boolean loadFs(Persistable p, String path) throws Exception {
-		String uri = "file:///" + path;
-		FileConnection fc = null;
-		DataInputStream dis = null;
-		try {
-			fc = (FileConnection) Connector.open(uri, Connector.READ);
-			if(!fc.exists()) return false;
-			dis = fc.openDataInputStream();
-			p.load(dis);
-			return true;
-		} finally {
-			try {
-				if(dis != null) dis.close();
-			} catch (Exception e){
-				this.warning("Cannot close maps DataInputStream", e);
-			}
-			try {
-				if(fc != null) fc.close();
-			} catch (Exception e){
-				this.warning("Cannot close maps FileConnection", e);
-			}
-		}
-	}
-	
 	private void setMap(int mapid){
 		Map orgmap = this.map;
-		this.map = (Map) this.maps.elementAt(mapid);
+		this.map = this.mapList.getMap(mapid);
 		this.canvas.setSegment(this.map.segment, this.map.xcount, this.map.ycount);
 		this.canvas.setMap(mapid);
 		double rx, ry;
@@ -599,18 +578,19 @@ System.out.println("Loading image " + path);
 	}
 	
 	private void setPosition(double latitude, double longitude){
-System.out.println("setPosition(" + latitude + ", " + longitude + ")");
+		this.info("Position: " + latitude + ", " + longitude);
 		int[] mcoords = new int[2];
 		this.realToMap(this.map, latitude, longitude, mcoords);
 		this.canvas.setPosition(mcoords[0], mcoords[1]);
 	}
 	
 	public Image getSegment(int mapid, int x, int y){
-		Map map = (Map) this.maps.elementAt(mapid);
+		Map map = this.mapList.getMap(mapid);
 		String name = map.name + "/" + x + "_" + y;
 		Image ret = this.getResImage("/data/" + name);
 		if(ret != null) return ret;
-		return this.getFsImage(this.dataPath + "/" + name);
+		if(this.fileSystem != null) return this.fileSystemGetImage(name);
+		return null;
 	}
 	
 	private Form createAboutForm(){
@@ -806,7 +786,7 @@ System.out.println("setPosition(" + latitude + ", " + longitude + ")");
 		this.updateOverlay();
 	}
 	
-	private boolean loadRs(Persistable p, String name) throws Exception {
+	private boolean recordStoreLoad(Persistable p, String name) throws Exception {
 		try {
 			RecordStore rs = RecordStore.openRecordStore(name, false);
 			if(rs.getNumRecords() < 1) return false;
@@ -823,7 +803,7 @@ System.out.println("setPosition(" + latitude + ", " + longitude + ")");
 		}
 	}
 	
-	private void saveRs(Persistable p, String name) throws Exception {
+	private void recordStoreSave(Persistable p, String name) throws Exception {
 		try {
 			RecordStore rs = RecordStore.openRecordStore(name, true);
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -843,6 +823,15 @@ System.out.println("setPosition(" + latitude + ", " + longitude + ")");
 		}
 	}
 	
+	private boolean resourceLoad(Persistable p, String resource) throws Exception {
+		InputStream is = (this.getClass()).getResourceAsStream(resource);
+		if(is == null) return false;
+		DataInputStream dis = new DataInputStream(is);
+		p.load(dis);
+		dis.close();
+		return true;
+	}
+	
 	private void initLocator() throws Exception {
 		String className = null;
 		switch(this.locatorType){
@@ -855,8 +844,7 @@ System.out.println("setPosition(" + latitude + ", " + longitude + ")");
 		}
 		if(className == null) return;
 		try {
-			Class clazz = Class.forName(className);
-			this.locator = (Locator) clazz.newInstance();
+			this.locator = (Locator) this.newInstance(className);
 			this.locator.setOwner(this);
 			try {
 				this.locator.init();

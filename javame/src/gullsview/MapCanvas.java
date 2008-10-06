@@ -37,6 +37,8 @@ public abstract class MapCanvas extends Canvas {
 		this.painting = false;
 	}
 	
+	public abstract void dispose();
+	
 	public void setSegment(int segment, int xsegcount, int ysegcount){
 		this.segment = segment;
 		this.xsegcount = xsegcount;

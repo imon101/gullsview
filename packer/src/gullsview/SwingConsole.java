@@ -49,6 +49,7 @@ public class SwingConsole extends Console {
 			this.height += fm.getHeight() + gap;
 			int w = fm.stringWidth(line);
 			if(this.width < w) this.width = w;
+			this.repaint();
 		}
 		
 		public void paint(Graphics g){
@@ -78,8 +79,10 @@ public class SwingConsole extends Console {
 	}
 	
 	public SwingConsole(){
+		Dimension screenSize = (Toolkit.getDefaultToolkit()).getScreenSize();
 		this.frame = new JFrame(this.r("title"));
-		this.frame.setSize(700, 300);
+		this.frame.setSize(500, 300);
+		this.frame.setLocation((screenSize.width - this.frame.getWidth()) / 2, (screenSize.height - this.frame.getHeight()) / 2);
 		this.frame.addWindowListener(new WindowAdapter(){
 			public void windowClosing(WindowEvent we){
 				SwingConsole.this.close();
@@ -90,24 +93,26 @@ public class SwingConsole extends Console {
 		this.frame.setLayout(this.layout);
 		this.output = new ColorOutput();
 		this.scrollPane = new JScrollPane(this.output);
-		this.add(this.scrollPane, 0, 2, 2, 1, 0, 10);
+		this.add(this.scrollPane, 0, 2, 3, 1, 0, 5);
 		this.label = new JLabel();
 		this.label.setHorizontalAlignment(SwingConstants.CENTER);
-		this.add(this.label, 0, 0, 2, 1, 0, 1);
+		JScrollPane lsp = new JScrollPane(this.label);
+		this.add(lsp, 0, 0, 3, 1, 0, 1);
+		this.add(new JLabel(this.r("answer") + ": "), 0, 1, 1, 1, 0, 0);
 		this.text = new JTextField();
 		this.text.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent ae){
 				SwingConsole.this.sendInput();
 			}
 		});
-		this.add(this.text, 0, 1, 1, 1, 1, 0);
+		this.add(this.text, 1, 1, 1, 1, 1, 0);
 		JButton button = new JButton(this.r("accept"));
 		button.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent ae){
 				SwingConsole.this.sendInput();
 			}
 		});
-		this.add(button, 1, 1, 1, 1, 0, 0);
+		this.add(button, 2, 1, 1, 1, 0, 0);
 		this.frame.setVisible(true);
 	}
 	
@@ -127,6 +132,7 @@ public class SwingConsole extends Console {
 		if(this.frame == null) return null;
 		this.label.setText(question);
 		this.text.setText(def);
+		this.text.selectAll();
 		String ret;
 		synchronized(this.lock){
 			try {
@@ -172,11 +178,15 @@ public class SwingConsole extends Console {
 		}
 	}
 	
-	public void close(){
+	private void dispose(){
 		this.frame.setVisible(false);
 		this.frame.dispose();
+	}
+	
+	public void close(){
+		this.printRes("please-close-window");
+		// this.dispose();
 		this.frame = null;
-		System.exit(0);
 	}
 }
 

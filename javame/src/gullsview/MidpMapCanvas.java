@@ -21,6 +21,10 @@ public class MidpMapCanvas extends MapCanvas {
 		this.font = Font.getDefaultFont();
 	}
 	
+	public void dispose(){
+		this.cache.clear();
+	}
+	
 	public void setSegment(int segment, int xsegcount, int ysegcount){
 		super.setSegment(segment, xsegcount, ysegcount);
 		int count = ((this.maxWidth / this.segment) + 2) * ((this.maxHeight / this.segment) + 2);
