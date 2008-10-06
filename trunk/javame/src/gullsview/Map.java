@@ -39,6 +39,10 @@ public class Map {
 		this.realcx = in.readDouble();
 		this.realcy = in.readDouble();
 	}
+	
+	public String toString(){
+		return this.title + ((vendor.length() > 0) ? " (" + this.vendor + ")" : "");
+	}
 }
 
 

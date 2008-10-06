@@ -14,6 +14,7 @@ public class JarFilter {
 	public interface Filter {
 		public boolean processEntry(String name);
 		public void processManifest(java.util.Map<String, String> map);
+		public void addEntries(FileDumper fd) throws IOException;
 	}
 	
 	public JarFilter(InputStream in, OutputStream out, Filter filter){
@@ -29,7 +30,7 @@ public class JarFilter {
 		java.util.Map<String, String> matts = new HashMap<String, String>();
 		for(Object key : atts.keySet()) matts.put(((Attributes.Name) key).toString(), (String) atts.get(key));
 		this.filter.processManifest(matts);
-		ZipOutputStream zos = new ZipOutputStream(this.out);
+		final ZipOutputStream zos = new ZipOutputStream(this.out);
 		zos.putNextEntry(new ZipEntry("META-INF/MANIFEST.MF"));
 		writeManifest(matts, zos);
 		JarEntry entry;
@@ -40,6 +41,18 @@ public class JarFilter {
 			zos.putNextEntry(newEntry);
 			pump(jis, zos, 1024);
 		}
+		zos.flush();
+		this.filter.addEntries(new FileDumper(){
+			public void next(String path) throws IOException {
+				zos.putNextEntry(new ZipEntry(path));
+			}
+			public void write(byte[] buffer, int offset, int length) throws IOException {
+				zos.write(buffer, offset, length);
+			}
+			public void close() throws IOException {
+				// Noop
+			}
+		});
 		zos.flush();
 		zos.close();
 		jis.close();

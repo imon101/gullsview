@@ -145,6 +145,7 @@ public class Main extends MIDlet implements CommandListener/*, Persistable*/ {
 				this.mapList = new MapList(this, this.getResource("select-map"));
 				this.mapList.addCommand(this.backCommand);
 				this.mapList.addCommand(this.okCommand);
+				this.mapList.setCommandListener(this);
 				
 				if(this.flagJsr75FC) this.fileSystem = (FileSystem) this.newInstance("gullsview.FileSystemImpl");
 				
@@ -319,6 +320,8 @@ this.locatorType = LOCATOR_NONE;
 			this.targetLatitude = this.targetLongitude = Double.NaN;
 			this.updateTarget();
 			this.canvas.repaint();
+		} else if(cmd == this.mapSelectCommand){
+			this.show(this.mapList);
 		}
 	}
 	
@@ -550,6 +553,8 @@ this.locatorType = LOCATOR_NONE;
 				if(!this.fileSystem.load(this.mapList, path))
 					throw new Exception("File " + path + " does not exist");
 			}
+			this.info("Loaded " + this.mapList.getMapCount() + " maps");
+			this.mapList.update();
 		} catch (Exception e){
 			this.error("Cannot load maps", e);
 		}

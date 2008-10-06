@@ -1,7 +1,9 @@
 BTADDR = 00:22:98:1E:AD:91
 UPLOADJAR = GullsView.jar
 
-all: info build
+#all: info build
+all: build run
+	midp GullsView.jad
 
 info:
 	###################################################################
@@ -19,6 +21,9 @@ info:
 build:
 	cd javame; make build
 	cd packer; make build
+
+run:
+	java -jar GullsViewPacker.jar
 
 runmin:
 	java -jar GullsViewPacker.jar -properties resource:/minimal.properties

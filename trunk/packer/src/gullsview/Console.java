@@ -10,7 +10,7 @@ public abstract class Console {
 		this.resources = ResourceBundle.getBundle("gullsview.Resources");
 	}
 	
-	protected String r(String id){
+	public String r(String id){
 		if(id == null) throw new NullPointerException("resource id is null");
 		try {
 			return this.resources.getString(id);

@@ -25,7 +25,7 @@ public class Resources_cs extends ListResourceBundle {
 		{"start", "Začínám generovat midlet suite"},
 		{"finish", "Hotovo"},
 		{"please-close-window", "Pro ukončení aplikace zavřete toto okno"},
-		{"", ""},
+		{"world", "Svět"},
 		{"", ""},
 		{"", ""},
 		{"", ""},

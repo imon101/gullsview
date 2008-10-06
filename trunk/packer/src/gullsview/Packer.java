@@ -8,16 +8,19 @@ import java.util.*;
 public class Packer {
 	private Console console;
 	private java.util.Map<String, Set<String>> restrictions;
+	private List<Map> maps;
 	
 	public Packer(Console console) throws Exception {
 		this.console = console;
 		this.restrictions = new HashMap<String, Set<String>>();
-this.addRestrictedEntry("FC", "gullsview/");
+		this.maps = new ArrayList<Map>();
+		this.addRestrictedEntry("FC", "gullsview/FileSystemImpl.class");
 		this.addRestrictedEntry("BT", "gullsview/Jsr082Locator.class");
 		this.addRestrictedEntry("LAPI", "gullsview/Jsr179Locator.class");
 		this.addRestrictedEntry("M3G", "gullsview/M3GMapCanvas.class");
 		this.addRestrictedEntry("M3G", "pointer2.png");
 		this.addRestrictedEntry("M3G", "compass.png");
+		this.maps.add(this.createWorldMap());
 	}
 	
 	public void addRestrictedEntry(String constraint, String path){
@@ -109,6 +112,15 @@ this.addRestrictedEntry("FC", "gullsview/");
 				String desc = values.get(descId);
 				if(desc != null) values.put(descId, desc + " (extensions: " + extensions + ")");
 			}
+			
+			public void addEntries(FileDumper fd) throws IOException {
+				fd.next("data/maps");
+				Packer.this.writeMaps(fd);
+				Packer.this.writeResourceImage(fd, "data/world/0_0", "/world/0_0");
+				Packer.this.writeResourceImage(fd, "data/world/0_1", "/world/0_1");
+				Packer.this.writeResourceImage(fd, "data/world/1_0", "/world/1_0");
+				Packer.this.writeResourceImage(fd, "data/world/1_1", "/world/1_1");
+			}
 		};
 		InputStream in = (this.getClass()).getResourceAsStream("/GullsView.mjar");
 		String jarFileName = pathPrefix + ".jar";
@@ -134,6 +146,56 @@ this.addRestrictedEntry("FC", "gullsview/");
 		} catch (Exception e){
 			return null;
 		}
+	}
+	
+	private Map createWorldMap(){
+		Map map = new Map();
+		map.name = "world";
+		map.title = this.console.r("world");
+		map.vendor = "";
+		map.secchunk = "";
+		map.scale = 0;
+		map.segment = 256;
+		map.xcount = 2;
+		map.ycount = 2;
+		map.defaultx = 0;
+		map.defaulty = 0;
+		map.locax = 0;
+		map.locay = 0;
+		map.locbx = map.segment * map.xcount;
+		map.locby = 0;
+		map.loccx = 0;
+		map.loccy = map.segment * map.ycount;
+		map.realax = -180;
+		map.realay = 90;
+		map.realbx = 180;
+		map.realby = 90;
+		map.realcx = -180;
+		map.realcy = -90;
+		return map;
+	}
+	
+	private void writeMaps(FileDumper fd) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		this.writeMaps(baos);
+		byte[] buffer = baos.toByteArray();
+		fd.write(buffer, 0, buffer.length);
+	}
+	
+	private void writeMaps(OutputStream os) throws IOException {
+		DataOutputStream dos = new DataOutputStream(os);
+		dos.writeInt(maps.size());
+		for(Map map : maps) map.save(dos);
+		dos.flush();
+	}
+	
+	private void writeResourceImage(FileDumper fd, String path, String resource) throws IOException {
+		fd.next(path);
+		InputStream is = (this.getClass()).getResourceAsStream(resource);
+		if(is == null) throw new IOException("Cannot find resource \"" + resource + "\"");
+		byte[] buffer = new byte[1024];
+		int count;
+		while((count = is.read(buffer, 0, buffer.length)) > 0) fd.write(buffer, 0, count);
 	}
 }
 
