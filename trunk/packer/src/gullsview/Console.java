@@ -75,7 +75,7 @@ public abstract class Console {
 	}
 	
 	public void printRes(String resid){
-		this.print(resid, null);
+		this.printRes(resid, null);
 	}
 	
 	public abstract void error(String message, Throwable t);

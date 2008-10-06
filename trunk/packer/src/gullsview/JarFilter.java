@@ -13,7 +13,7 @@ public class JarFilter {
 	
 	public interface Filter {
 		public boolean processEntry(String name);
-		public void processManifest(java.util.Map map);
+		public void processManifest(java.util.Map<String, String> map);
 	}
 	
 	public JarFilter(InputStream in, OutputStream out, Filter filter){
@@ -33,14 +33,12 @@ public class JarFilter {
 		zos.putNextEntry(new ZipEntry("META-INF/MANIFEST.MF"));
 		writeManifest(matts, zos);
 		JarEntry entry;
-		byte[] buffer = new byte[1024];
-		int count;
 		while((entry = jis.getNextJarEntry()) != null){
 			String name = entry.getName();
 			if(!this.filter.processEntry(name)) continue;
 			JarEntry newEntry = new JarEntry(name);
 			zos.putNextEntry(newEntry);
-			while((count = jis.read(buffer, 0, buffer.length)) >= 0) zos.write(buffer, 0, count);
+			pump(jis, zos, 1024);
 		}
 		zos.flush();
 		zos.close();
@@ -48,7 +46,14 @@ public class JarFilter {
 		return matts;
 	}
 	
-	public static void writeManifest(java.util.Map map, OutputStream out) throws IOException {
+	private void pump(InputStream in, OutputStream out, int bufferSize) throws IOException {
+		byte[] buffer = new byte[bufferSize];
+		int count;
+		while((count = in.read(buffer, 0, buffer.length)) >= 0) out.write(buffer, 0, count);
+		out.flush();
+	}
+	
+	public static void writeManifest(java.util.Map<String, String> map, OutputStream out) throws IOException {
 		PrintWriter pw = new PrintWriter(new OutputStreamWriter(out));
 		for(Object key : map.keySet()){
 			pw.print((String) key);

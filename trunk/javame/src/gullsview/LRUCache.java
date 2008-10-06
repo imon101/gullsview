@@ -53,6 +53,13 @@ public abstract class LRUCache {
 	}
 	
 	public abstract Object fetch(Object key);
+	
+	public void clear(){
+		for(int i = 0; i < keys.length; i++){
+			this.keys[i] = null;
+			this.values[i] = null;
+		}
+	}
 }
 
 

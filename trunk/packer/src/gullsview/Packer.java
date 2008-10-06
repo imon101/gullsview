@@ -44,10 +44,29 @@ this.addRestrictedEntry("FC", "gullsview/");
 	}
 	
 	public void run() throws Exception {
+		String path = (new File(".")).getCanonicalPath();
+		for(;;){
+			path = this.console.inputString("output-path", null, path);
+			try {
+				File file = new File(path);
+				if(!file.exists()){
+					this.console.errorRes("error-not-exist");
+				} else if(!file.isDirectory()){
+					this.console.errorRes("error-not-directory");
+				} else {
+					break;
+				}
+			} catch (Exception e){
+				this.console.errorRes("error-incorrect-path", e);
+			}
+		}
 		boolean flagFc = this.console.inputBoolean("enable-fc", null, false);
 		boolean flagBt = this.console.inputBoolean("enable-bt", null, false);
 		boolean flagLapi = this.console.inputBoolean("enable-lapi", null, false);
 		boolean flagM3g = this.console.inputBoolean("enable-m3g", null, false);
+		this.console.printRes("start");
+		this.filterJars(path, flagFc, flagBt, flagLapi, flagM3g);
+		this.console.printRes("finish");
 	}
 	
 	public void close(){
@@ -57,34 +76,38 @@ this.addRestrictedEntry("FC", "gullsview/");
 	private void filterJars(String path, boolean fc, boolean bt, boolean lapi, boolean m3g) throws IOException {
 		List<String> constraints = new ArrayList<String>();
 		String pathPrefix = path + "/GullsView";
+		String pathSuffix = "";
 		if(fc){
-			pathPrefix += "_FC";
+			pathSuffix += "_FC";
 			constraints.add("FC");
 		}
 		if(bt){
-			pathPrefix += "_BT";
+			pathSuffix += "_BT";
 			constraints.add("BT");
 		}
 		if(lapi){
-			pathPrefix += "_LAPI";
+			pathSuffix += "_LAPI";
 			constraints.add("LAPI");
 		}
 		if(m3g){
-			pathPrefix += "_M3G";
+			pathSuffix += "_M3G";
 			constraints.add("M3G");
 		}
 		String[] sconstraints = new String[constraints.size()];
 		constraints.toArray(sconstraints);
-		this.filterJar(pathPrefix, sconstraints);
+		this.filterJar(pathPrefix + pathSuffix, sconstraints, (pathSuffix.length() > 0) ? pathSuffix.substring(1) : "none");
 	}
 	
-	private void filterJar(String pathPrefix, final String[] constraints) throws IOException {
+	private void filterJar(String pathPrefix, final String[] constraints, final String extensions) throws IOException {
 		JarFilter.Filter filter = new JarFilter.Filter(){
 			public boolean processEntry(String name){
 				return Packer.this.isRestricted(name) ? Packer.this.isAllowed(name, constraints) : true;
 			}
 			
-			public void processManifest(java.util.Map values){
+			public void processManifest(java.util.Map<String, String> values){
+				String descId = "MIDlet-Description";
+				String desc = values.get(descId);
+				if(desc != null) values.put(descId, desc + " (extensions: " + extensions + ")");
 			}
 		};
 		InputStream in = (this.getClass()).getResourceAsStream("/GullsView.mjar");

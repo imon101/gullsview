@@ -57,6 +57,9 @@ public class M3gMapCanvas extends MapCanvas {
 		this.compassTex = this.createTexture(Image2D.RGBA, "/compass.png");
 	}
 	
+	public void dispose(){
+	}
+	
 	public void setSegment(int segment, int xcount, int ycount){
 		super.setSegment(segment, xcount, ycount);
 		int count = 15;
