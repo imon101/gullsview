@@ -15,6 +15,7 @@ javac:
 jar: javac
 	cd classes; jar -cfm ../$(PROJECT).jar ../$(PROJECT).mf *
 	jar -uf $(PROJECT).jar -C ../javame GullsView.mjar
+	cd res; jar -uf ../$(PROJECT).jar *
 
 run:
 	java -jar $(PROJECT).jar
