@@ -29,7 +29,8 @@ public abstract class Console {
 		if(resid == null) resid = id;
 		String question = this.r(resid);
 		String s = this.input(id, question, def);
-		return s != null ? s : def;
+		if(s == null) throw new RuntimeException("End of input");
+		return s;
 	}
 	
 	public int inputInt(String id, String resid, int def){

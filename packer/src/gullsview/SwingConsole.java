@@ -86,6 +86,7 @@ public class SwingConsole extends Console {
 		this.frame.addWindowListener(new WindowAdapter(){
 			public void windowClosing(WindowEvent we){
 				SwingConsole.this.close();
+				System.exit(0);
 			}
 		});
 		this.layout = new GridBagLayout();
@@ -184,7 +185,7 @@ public class SwingConsole extends Console {
 	}
 	
 	public void close(){
-		this.printRes("please-close-window");
+		// this.printRes("please-close-window");
 		this.dispose();
 		this.frame = null;
 	}

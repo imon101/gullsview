@@ -20,7 +20,9 @@ public class Packer {
 		this.addRestrictedEntry("M3G", "gullsview/M3GMapCanvas.class");
 		this.addRestrictedEntry("M3G", "pointer2.png");
 		this.addRestrictedEntry("M3G", "compass.png");
-		this.maps.add(this.createWorldMap());
+		Map world = new Map();
+		this.processWorldMap(world);
+		this.maps.add(world);
 	}
 	
 	public void addRestrictedEntry(String constraint, String path){
@@ -47,6 +49,12 @@ public class Packer {
 	}
 	
 	public void run() throws Exception {
+		int count = this.console.inputInt("map-count", null, 1);
+		for(int i = 0; i < count; i++){
+			Map map = new Map();
+			this.processMap(map, i);
+			this.maps.add(map);
+		}
 		String path = (new File(".")).getCanonicalPath();
 		for(;;){
 			path = this.console.inputString("output-path", null, path);
@@ -148,8 +156,33 @@ public class Packer {
 		}
 	}
 	
-	private Map createWorldMap(){
-		Map map = new Map();
+	private void processMap(Map map, int index){
+		map.name = this.inputString(index, "name", "");
+		map.title = this.inputString(index, "title", "");
+		map.vendor = this.inputString(index, "vendor", "");
+		String ip = this.getIp();
+		map.secchunk = (ip != null) ? ip : "";
+		map.scale = this.inputInt(index, "scale", 0);
+		map.segment = this.inputInt(index, "segment", 256);
+		while(map.xcount <= 0) map.xcount = this.inputInt(index, "xcount", 1);;
+		while(map.ycount <= 0) map.ycount = this.inputInt(index, "ycount", 1);;
+		map.locax = 0;
+		map.locay = 0;
+		map.locbx = map.segment * map.xcount;
+		map.locby = 0;
+		map.loccx = 0;
+		map.loccy = map.segment * map.ycount;
+		map.realay = this.inputCoord(index, "lt-lat", 0);
+		map.realax = this.inputCoord(index, "lt-lon", 0);
+		map.realby = this.inputCoord(index, "rt-lat", 0);
+		map.realbx = this.inputCoord(index, "rt-lon", 0);
+		map.realcy = this.inputCoord(index, "lb-lat", 0);
+		map.realcx = this.inputCoord(index, "lb-lon", 0);
+		map.defaulty = this.inputCoord(index, "lat", (map.realay + map.realcy) / 2);
+		map.defaultx = this.inputCoord(index, "lon", (map.realax + map.realbx) / 2);
+	}
+	
+	private void processWorldMap(Map map){
 		map.name = "world";
 		map.title = this.console.r("world");
 		map.vendor = "";
@@ -166,13 +199,12 @@ public class Packer {
 		map.locby = 0;
 		map.loccx = 0;
 		map.loccy = map.segment * map.ycount;
-		map.realax = -180;
-		map.realay = 90;
-		map.realbx = 180;
-		map.realby = 90;
-		map.realcx = -180;
-		map.realcy = -90;
-		return map;
+		map.realax = 90;
+		map.realay = -180;
+		map.realbx = 90;
+		map.realby = 180;
+		map.realcx = -90;
+		map.realcy = -180;
 	}
 	
 	private void writeMaps(FileDumper fd) throws IOException {
@@ -196,6 +228,70 @@ public class Packer {
 		byte[] buffer = new byte[1024];
 		int count;
 		while((count = is.read(buffer, 0, buffer.length)) > 0) fd.write(buffer, 0, count);
+	}
+	
+	private String inputString(int index, String id, String def){
+		String ret;
+		for(;;){
+			ret = this.console.inputString("map-" + index + "-" + id, "map-" + id, def);
+			ret = ret.trim();
+			if(ret.length() > 0) break;
+			this.console.errorRes("error-empty");
+		}
+		return ret;
+	}
+	
+	private int inputInt(int index, String id, int def){
+		return this.console.inputInt("map-" + index + "-" + id, "map-" + id, def);
+	}
+	
+	private double inputCoord(int index, String id, double def){
+		for(;;){
+			String str = this.inputString(index, id, this.formatCoord(def));
+			try {
+				return this.parseCoord(str);
+			} catch (Exception e){
+				this.console.errorRes("error-not-coord");
+			}
+		}
+	}
+	
+	private String formatCoord(double coord){
+		int sgn = coord < 0 ? -1 : 1;
+		coord = Math.abs(coord);
+		int deg = (int) Math.floor(coord);
+		double mrest = (coord - deg) * 60;
+		int min = (int) Math.floor(mrest);
+		double srest = (mrest - min) * 60;
+		int sec = (int) Math.floor(srest);
+		int msec = (int) Math.floor((srest - sec) * 1000);
+		String smsec = String.valueOf(msec);
+		while(smsec.length() < 3) smsec = "0" + smsec;
+		return (sgn * deg) + "*" + min + "#" + sec + "." + smsec;
+	}
+	
+	private double parseCoord(String str){
+		String sdeg = null;
+		String smin = null;
+		String ssec = null;
+		int asterisk = str.indexOf('*');
+		if(asterisk < 0){
+			sdeg = str;
+		} else {
+			sdeg = str.substring(0, asterisk);
+			String srest = str.substring(asterisk + 1);
+			int pound = srest.indexOf('#');
+			if(pound < 0){
+				smin = srest;
+			} else {
+				smin = srest.substring(0, pound);
+				ssec = srest.substring(pound + 1);
+			}
+		}
+		double deg = Double.parseDouble(sdeg);
+		double min = Double.parseDouble(smin);
+		double sec = Double.parseDouble(ssec);
+		return deg + (min / 60) + (sec / 3600);
 	}
 }
 
