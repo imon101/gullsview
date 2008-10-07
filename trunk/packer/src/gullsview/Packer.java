@@ -180,6 +180,17 @@ public class Packer {
 		map.realcx = this.inputCoord(index, "lb-lon", 0);
 		map.defaulty = this.inputCoord(index, "lat", (map.realay + map.realcy) / 2);
 		map.defaultx = this.inputCoord(index, "lon", (map.realax + map.realbx) / 2);
+		this.processMapData(map, index);
+	}
+	
+	private void processMapData(Map map, int index){
+		for(;;){
+			map.dataDir = this.inputString(index, "data-dir", "");
+			File dir = new File(map.dataDir);
+			if(dir.exists() && dir.isDirectory()) break;
+			this.console.errorRes("error-not-directory");
+		}
+		map.dataFormat = this.inputString(index, "data-format", "{0}_{1}.png");
 	}
 	
 	private void processWorldMap(Map map){
