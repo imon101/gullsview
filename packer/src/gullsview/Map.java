@@ -14,6 +14,7 @@ public class Map {
 	public double defaultx, defaulty;
 	public double locax, locay, locbx, locby, loccx, loccy;
 	public double realax, realay, realbx, realby, realcx, realcy;
+	public String dataDir, dataFormat;
 	
 	public void save(DataOutput out) throws IOException {
 		out.writeUTF(this.name);
