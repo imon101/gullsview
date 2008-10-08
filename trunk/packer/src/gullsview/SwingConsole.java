@@ -85,7 +85,7 @@ public class SwingConsole extends Console {
 		this.frame.setLocation((screenSize.width - this.frame.getWidth()) / 2, (screenSize.height - this.frame.getHeight()) / 2);
 		this.frame.addWindowListener(new WindowAdapter(){
 			public void windowClosing(WindowEvent we){
-				SwingConsole.this.close();
+				SwingConsole.this.dispose();
 				System.exit(0);
 			}
 		});
@@ -182,12 +182,12 @@ public class SwingConsole extends Console {
 	private void dispose(){
 		this.frame.setVisible(false);
 		this.frame.dispose();
+		this.frame = null;
 	}
 	
 	public void close(){
-		// this.printRes("please-close-window");
+		this.inputString("accept-to-close", null, null);
 		this.dispose();
-		this.frame = null;
 	}
 }
 

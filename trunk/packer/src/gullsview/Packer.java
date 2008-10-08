@@ -9,6 +9,7 @@ public class Packer {
 	private Console console;
 	private java.util.Map<String, Set<String>> restrictions;
 	private List<Map> maps;
+	private boolean flagFc, flagBt, flagLapi, flagM3g;
 	
 	public Packer(Console console) throws Exception {
 		this.console = console;
@@ -49,12 +50,18 @@ public class Packer {
 	}
 	
 	public void run() throws Exception {
+		this.flagFc = this.console.inputBoolean("enable-fc", null, false);
+		this.flagBt = this.console.inputBoolean("enable-bt", null, false);
+		this.flagLapi = this.console.inputBoolean("enable-lapi", null, false);
+		this.flagM3g = this.console.inputBoolean("enable-m3g", null, false);
+		
 		int count = this.console.inputInt("map-count", null, 1);
 		for(int i = 0; i < count; i++){
 			Map map = new Map();
 			this.processMap(map, i);
 			this.maps.add(map);
 		}
+		
 		String path = (new File(".")).getCanonicalPath();
 		for(;;){
 			path = this.console.inputString("output-path", null, path);
@@ -71,10 +78,7 @@ public class Packer {
 				this.console.errorRes("error-incorrect-path", e);
 			}
 		}
-		boolean flagFc = this.console.inputBoolean("enable-fc", null, false);
-		boolean flagBt = this.console.inputBoolean("enable-bt", null, false);
-		boolean flagLapi = this.console.inputBoolean("enable-lapi", null, false);
-		boolean flagM3g = this.console.inputBoolean("enable-m3g", null, false);
+		
 		this.console.printRes("start");
 		this.filterJars(path, flagFc, flagBt, flagLapi, flagM3g);
 		this.console.printRes("finish");
@@ -184,13 +188,19 @@ public class Packer {
 	}
 	
 	private void processMapData(Map map, int index){
+		try {
+			map.dataDir = (new File(".")).getCanonicalPath();
+		} catch (IOException e){
+			throw new RuntimeException(e);
+		}
 		for(;;){
-			map.dataDir = this.inputString(index, "data-dir", "");
+			map.dataDir = this.inputString(index, "data-dir", map.dataDir);
 			File dir = new File(map.dataDir);
 			if(dir.exists() && dir.isDirectory()) break;
 			this.console.errorRes("error-not-directory");
 		}
 		map.dataFormat = this.inputString(index, "data-format", "{0}_{1}.png");
+		map.dataIncluded = this.flagFc ? this.inputBoolean(index, "data-included", true) : true;
 	}
 	
 	private void processWorldMap(Map map){
@@ -254,6 +264,10 @@ public class Packer {
 	
 	private int inputInt(int index, String id, int def){
 		return this.console.inputInt("map-" + index + "-" + id, "map-" + id, def);
+	}
+	
+	private boolean inputBoolean(int index, String id, boolean def){
+		return this.console.inputBoolean("map-" + index + "-" + id, "map-" + id, def);
 	}
 	
 	private double inputCoord(int index, String id, double def){
