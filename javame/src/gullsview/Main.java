@@ -433,7 +433,7 @@ this.locatorType = LOCATOR_NONE;
 		int separator = locale.indexOf('_');
 		if(separator < 0) separator = locale.indexOf('-');
 		if(separator >= 0) locale = locale.substring(0, separator);
-		System.out.println("Locale: " + locale);
+		this.info("Locale: " + locale);
 		if("cs".equals(locale)){
 			this.setResource("exit", "Ukončit");
 			this.setResource("pause", "Pozastavit");
