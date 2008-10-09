@@ -89,6 +89,10 @@ public abstract class Console {
 	
 	public abstract void error(String message, Throwable t);
 	
+	public void error(String message){
+		this.error(message, null);
+	}
+	
 	public void errorRes(String resid, Throwable t){
 		this.error(this.r(resid), t);
 	}
