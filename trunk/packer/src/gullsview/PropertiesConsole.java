@@ -12,10 +12,13 @@ public class PropertiesConsole extends Console {
 	}
 	
 	public PropertiesConsole(File file) throws IOException {
+		this(new FileInputStream(file));
+	}
+	
+	public PropertiesConsole(InputStream is) throws IOException {
 		this(new Properties());
-		FileInputStream fis = new FileInputStream(file);
-		this.properties.load(fis);
-		fis.close();
+		this.properties.load(is);
+		is.close();
 	}
 	
 	public PropertiesConsole(Properties properties){
@@ -27,17 +30,22 @@ public class PropertiesConsole extends Console {
 	}
 	
 	public String input(String id, String question, String def){
+		System.out.println("QUESTION: " + question);
 		String value = this.properties.getProperty(id);
-		return (value == null) ? def : value;
+		System.out.println("PROPERTY: \"" + id + "\" [" + def + "] = " + value);
+		if(value != null) return value;
+		if(def == null) throw new RuntimeException("Cannot find property " + id);
+		return def;
 	}
 	
 	public void print(String text, String color){
-		// NOOP
+		System.out.println(">>> " + text);
 	}
 	
 	public void error(String message, Throwable t){
 		System.err.println("ERROR: " + message);
 		if(t != null) t.printStackTrace();
+		System.exit(1);
 	}
 }
 
