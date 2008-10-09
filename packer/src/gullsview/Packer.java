@@ -117,7 +117,9 @@ public class Packer {
 		}
 		String[] sconstraints = new String[constraints.size()];
 		constraints.toArray(sconstraints);
+		this.console.print(this.console.r("writing-output-start") + ": " + pathPrefix + pathSuffix + ".{jar|jad}");
 		this.filterJar(pathPrefix + pathSuffix, sconstraints, (pathSuffix.length() > 0) ? pathSuffix.substring(1) : "none");
+		this.console.print(this.console.r("writing-output-finish") + ": " + pathPrefix + pathSuffix + ".{jar|jad}");
 	}
 	
 	private void filterJar(String pathPrefix, final String[] constraints, final String extensions) throws IOException {

@@ -1,6 +1,7 @@
 package gullsview;
 
 import java.util.*;
+import java.util.concurrent.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -14,8 +15,7 @@ public class SwingConsole extends Console {
 	private ColorOutput output;
 	private GridBagLayout layout;
 	private GridBagConstraints gbc;
-	private Object lock = new Object();
-	private String line;
+	private BlockingQueue<String> queue;
 	
 	public class ColorOutput extends JPanel {
 		private java.util.List<String> lines;
@@ -83,6 +83,7 @@ public class SwingConsole extends Console {
 	}
 	
 	public SwingConsole(){
+		this.queue = new LinkedBlockingQueue<String>();
 		Dimension screenSize = (Toolkit.getDefaultToolkit()).getScreenSize();
 		this.frame = new JFrame(this.r("title"));
 		this.frame.setSize(500, 300);
@@ -139,14 +140,10 @@ public class SwingConsole extends Console {
 		this.text.setText(def);
 		this.text.selectAll();
 		String ret;
-		synchronized(this.lock){
-			try {
-				while(this.line == null) this.lock.wait();
-			} catch (InterruptedException e){
-				return null;
-			}
-			ret = this.line;
-			this.line = null;
+		try {
+			ret = this.queue.take();
+		} catch (InterruptedException e){
+			throw new RuntimeException(e);
 		}
 		this.print(this.r("question") + ": " + question, "gray");
 		this.print(this.r("answer") + ": " + ret, "blue");
@@ -157,14 +154,10 @@ public class SwingConsole extends Console {
 		String line = this.text.getText();
 		this.text.setText("");
 		this.label.setText("");
-		this.sendInput(line);
-	}
-	
-	public void sendInput(String line){
-		synchronized(this.lock){
-			while(this.line != null) this.lock.notify();
-			this.line = line;
-			this.lock.notify();
+		try {
+			this.queue.put(line);
+		} catch (InterruptedException e){
+			throw new RuntimeException(e);
 		}
 	}
 	

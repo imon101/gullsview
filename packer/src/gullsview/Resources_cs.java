@@ -54,7 +54,8 @@ public class Resources_cs extends ListResourceBundle {
 		{"processing-entry", "Zpracovávám JAR položku"},
 		{"writing-resource-entry", "Zapisuji JAR položku z vlastních zdrojů"},
 		{"adding-segment-file", "Přidávám do archivu dlaždici"},
-		{"", ""},
+		{"writing-output-start", "Vytvářím midlet suite"},
+		{"writing-output-finish", "Midlet suite vytvořen"},
 		{"", ""},
 		{"", ""},
 	};
