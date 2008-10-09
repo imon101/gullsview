@@ -84,7 +84,7 @@ public abstract class Console {
 	}
 	
 	public void printSeparator(){
-		this.print("<<<>=-=-=-=-=-=-=-=-=-=-=-=-=<>>>");
+		this.print("=-=-=-=-=-=-=-=-=-=-=-=-=");
 	}
 	
 	public abstract void error(String message, Throwable t);

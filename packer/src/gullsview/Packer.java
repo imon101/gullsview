@@ -10,6 +10,7 @@ public class Packer {
 	private java.util.Map<String, Set<String>> restrictions;
 	private List<Map> maps;
 	private boolean flagFc, flagBt, flagLapi, flagM3g;
+	private Map world;
 	
 	public Packer(Console console) throws Exception {
 		this.console = console;
@@ -21,9 +22,9 @@ public class Packer {
 		this.addRestrictedEntry("M3G", "gullsview/M3GMapCanvas.class");
 		this.addRestrictedEntry("M3G", "pointer2.png");
 		this.addRestrictedEntry("M3G", "compass.png");
-		Map world = new Map();
-		this.processWorldMap(world);
-		this.maps.add(world);
+		this.world = new Map();
+		this.processWorldMap(this.world);
+		this.maps.add(this.world);
 	}
 	
 	public void addRestrictedEntry(String constraint, String path){
@@ -49,7 +50,15 @@ public class Packer {
 		return false;
 	}
 	
+	private void usage(){
+		this.console.printSeparator();
+		for(int i = 0; i < 6; i++) this.console.printRes("usage-" + i);
+		this.console.printSeparator();
+	}
+	
 	public void run() throws Exception {
+		this.usage();
+		
 		this.flagFc = this.console.inputBoolean("enable-fc", null, false);
 		this.flagBt = this.console.inputBoolean("enable-bt", null, false);
 		this.flagLapi = this.console.inputBoolean("enable-lapi", null, false);
@@ -85,17 +94,41 @@ public class Packer {
 		this.console.printSeparator();
 		this.console.printRes("start");
 		this.console.printSeparator();
-		this.filterJars(path, flagFc, flagBt, flagLapi, flagM3g);
+		String outputPath = this.filterJars(path, flagFc, flagBt, flagLapi, flagM3g);
+		int externalDataCount = this.pushMapsData(new FileDumper(){
+			private FileOutputStream fis;
+			public void next(String path) throws IOException {
+				this.close();
+				File file = new File(path);
+				File dir = file.getParentFile();
+				dir.mkdirs();
+				this.fis = new FileOutputStream(file);
+			}
+			public void write(byte[] buffer, int offset, int length) throws IOException {
+				this.fis.write(buffer, offset, length);
+			}
+			public void close() throws IOException {
+				if(this.fis != null){
+					this.fis.flush();
+					this.fis.close();
+					this.fis = null;
+				}
+			}
+		}, outputPath + "_DATA", false);
 		this.console.printSeparator();
 		this.console.printRes("finish");
 		this.console.printSeparator();
+		if(externalDataCount > 0){
+			this.console.printRes("copy-data-along");
+			this.console.printSeparator();
+		}
 	}
 	
 	public void close(){
 		this.console.close();
 	}
 	
-	private void filterJars(String path, boolean fc, boolean bt, boolean lapi, boolean m3g) throws IOException {
+	private String filterJars(String path, boolean fc, boolean bt, boolean lapi, boolean m3g) throws IOException {
 		List<String> constraints = new ArrayList<String>();
 		String pathPrefix = path + "/GullsView";
 		String pathSuffix = "";
@@ -120,6 +153,7 @@ public class Packer {
 		this.console.print(this.console.r("writing-output-start") + ": " + pathPrefix + pathSuffix + ".{jar|jad}");
 		this.filterJar(pathPrefix + pathSuffix, sconstraints, (pathSuffix.length() > 0) ? pathSuffix.substring(1) : "none");
 		this.console.print(this.console.r("writing-output-finish") + ": " + pathPrefix + pathSuffix + ".{jar|jad}");
+		return pathPrefix + pathSuffix;
 	}
 	
 	private void filterJar(String pathPrefix, final String[] constraints, final String extensions) throws IOException {
@@ -264,12 +298,17 @@ public class Packer {
 		while((count = is.read(buffer, 0, buffer.length)) > 0) fd.write(buffer, 0, count);
 	}
 	
-	private void pushMapsData(FileDumper fd, String path, boolean inner) throws IOException {
-		for(Map map : this.maps) this.pushMapData(map, fd, path, inner);
+	private int pushMapsData(FileDumper fd, String path, boolean inner) throws IOException {
+		int ret = 0;
+		for(Map map : this.maps){
+			if(this.pushMapData(map, fd, path, inner)) ret++;
+		}
+		return ret;
 	}
 	
-	private void pushMapData(Map map, FileDumper fd, String path, boolean inner) throws IOException {
-		if(map.dataIncluded != inner) return;
+	private boolean pushMapData(Map map, FileDumper fd, String path, boolean inner) throws IOException {
+		if(map == this.world) return false;
+		if(map.dataIncluded != inner) return false;
 		String prefix = path + "/" + map.name;
 		for(int y = 0; y < map.ycount; y++){
 			for(int x = 0; x < map.xcount; x++){
@@ -283,13 +322,18 @@ public class Packer {
 					this.console.error(this.console.r("error-not-file") + ": \"" + file.getCanonicalPath() + "\"");
 					throw new IOException("Path is not file: " + file);
 				}
-				this.console.print(this.console.r("adding-segment-file") + ": " + file.getCanonicalPath());
+				if(inner){
+					this.console.print(this.console.r("adding-segment-file-to-archive") + ": " + file.getCanonicalPath());
+				} else {
+					this.console.print(this.console.r("adding-segment-file-to-dir") + ": " + prefix + "/" + name);
+				}
 				fd.next(prefix + "/" + name);
 				FileInputStream fis = new FileInputStream(file);
 				fd.pump(fis);
 				fis.close();
 			}
 		}
+		return true;
 	}
 	
 	private String inputString(int index, String id, String def){

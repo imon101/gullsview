@@ -41,16 +41,7 @@ public class Main {
 		System.err.println("================================================");
 		System.err.println("Error: " + message);
 		System.err.println("================================================");
-		usage();
 		System.exit(1);
-	}
-	
-	private static void usage(){
-		System.err.println("Usage: java " + Main.class.getName() + " [-stdio] [-properties FILE] [-swing]");
-		System.err.println("\twhere:");
-		System.err.println("\t-stdio           - runs application in text mode");
-		System.err.println("\t-properties FILE - runs application in batch mode (FILE is Java Properties file containing requested values)");
-		System.err.println("\t-swing           - runs application in graphical mode (default)");
 	}
 }
 

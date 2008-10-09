@@ -63,7 +63,7 @@ public class SwingConsole extends Console {
 			FontMetrics fm = this.getFontMetrics(font);
 			int y = fm.getAscent();
 			int size = this.lines.size();
-			for(int i = size - 1; i >= 0; i--){
+			for(int i = 0; i < size; i++){
 				String line = this.lines.get(i);
 				Color color = this.colors.get(i);
 				g.setColor(color);
@@ -86,7 +86,7 @@ public class SwingConsole extends Console {
 		this.queue = new LinkedBlockingQueue<String>();
 		Dimension screenSize = (Toolkit.getDefaultToolkit()).getScreenSize();
 		this.frame = new JFrame(this.r("title"));
-		this.frame.setSize(500, 300);
+		this.frame.setSize(800, 600);
 		this.frame.setLocation((screenSize.width - this.frame.getWidth()) / 2, (screenSize.height - this.frame.getHeight()) / 2);
 		this.frame.addWindowListener(new WindowAdapter(){
 			public void windowClosing(WindowEvent we){
@@ -164,7 +164,7 @@ public class SwingConsole extends Console {
 	public void print(String text, String color){
 		if(this.frame == null) return;
 		this.output.add(text, color);
-		(this.scrollPane.getViewport()).setViewPosition(new Point(0, 0));
+		(this.scrollPane.getViewport()).setViewPosition(new Point(0, this.output.getHeight()));
 	}
 	
 	public void error(String message, Throwable t){

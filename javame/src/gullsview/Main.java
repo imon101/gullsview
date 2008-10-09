@@ -68,6 +68,8 @@ public class Main extends MIDlet implements CommandListener/*, Persistable*/ {
 	private Command setTargetCommand;
 	private Command cancelTargetCommand;
 	private Command mapSelectCommand;
+	private Command switchToMidpCanvasCommand;
+	private Command switchToM3gCanvasCommand;
 	
 	public void startApp(){
 		this.timer = new Timer();
@@ -96,8 +98,10 @@ public class Main extends MIDlet implements CommandListener/*, Persistable*/ {
 				this.poiCommand = new Command(this.getResource("poi"), Command.SCREEN, 4);
 				this.cancelTargetCommand = new Command(this.getResource("cancel-target"), Command.SCREEN, 5);
 				this.mapSelectCommand = new Command(this.getResource("select-map"), Command.SCREEN, 6);
-				this.aboutCommand = new Command(this.getResource("about"), Command.SCREEN, 7);
-				this.pauseCommand = new Command(this.getResource("pause"), Command.SCREEN, 8);
+				this.switchToMidpCanvasCommand = new Command(this.getResource("switch-to-midp-canvas"), Command.SCREEN, 7);
+				this.switchToM3gCanvasCommand = new Command(this.getResource("switch-to-m3g-canvas"), Command.SCREEN, 8);
+				this.aboutCommand = new Command(this.getResource("about"), Command.SCREEN, 9);
+				this.pauseCommand = new Command(this.getResource("pause"), Command.SCREEN, 10);
 				this.editCommand = new Command(this.getResource("edit"), Command.ITEM, 1);
 				this.moveToCommand = new Command(this.getResource("move-to"), Command.ITEM, 2);
 				this.setTargetCommand = new Command(this.getResource("set-target"), Command.ITEM, 3);
@@ -169,6 +173,7 @@ this.locatorType = LOCATOR_NONE;
 	private void initCanvas(boolean m3g){
 		if(this.canvas != null) this.canvas.dispose();
 		this.canvas = null;
+		this.show(null);
 		if(!this.flagJsr184) m3g = false;
 		String className = m3g ? "gullsview.M3gMapCanvas" : "gullsview.MidpMapCanvas";
 		this.canvas = (MapCanvas) this.newInstance(className);
@@ -182,6 +187,11 @@ this.locatorType = LOCATOR_NONE;
 		this.canvas.addCommand(this.aboutCommand);
 		this.canvas.addCommand(this.pauseCommand);
 		this.canvas.addCommand(this.mapSelectCommand);
+		if(m3g){
+			this.canvas.addCommand(this.switchToMidpCanvasCommand);
+		} else {
+			if(this.flagJsr184) this.canvas.addCommand(this.switchToM3gCanvasCommand);
+		}
 		this.canvas.setCommandListener(this);
 	}
 	
@@ -323,6 +333,14 @@ this.locatorType = LOCATOR_NONE;
 				this.inOverlayList = false;
 				this.show(this.canvas);
 			}
+		} else if(cmd == this.switchToMidpCanvasCommand){
+			this.initCanvas(false);
+			this.setMap(this.mapList.getSelectedMap());
+			this.show(this.canvas);
+		} else if(cmd == this.switchToM3gCanvasCommand){
+			this.initCanvas(true);
+			this.setMap(this.mapList.getSelectedMap());
+			this.show(this.canvas);
 		}
 	}
 	
@@ -476,6 +494,8 @@ this.locatorType = LOCATOR_NONE;
 			this.setResource("temporarily-unavailable", "Dočasně nedostupné");
 			this.setResource("out-of-service", "Nefunkční");
 			this.setResource("select-map", "Výběr mapy");
+			this.setResource("switch-to-midp-canvas", "Klasické zobrazení");
+			this.setResource("switch-to-m3g-canvas", "3D zobrazení");
 		} else {
 			this.setResource("exit", "Exit");
 			this.setResource("pause", "Pause");
@@ -512,6 +532,8 @@ this.locatorType = LOCATOR_NONE;
 			this.setResource("temporarily-unavailable", "Temporarily unavailable");
 			this.setResource("out-of-service", "Out of service");
 			this.setResource("select-map", "Map selection");
+			this.setResource("switch-to-midp-canvas", "Classic view");
+			this.setResource("switch-to-m3g-canvas", "3D view");
 		}
 		// this.setResource("", "");
 	}
@@ -539,13 +561,13 @@ this.locatorType = LOCATOR_NONE;
 		try {
 			is = this.fileSystem.openInputStream(path);
 			return this.getImage(is);
-		} catch (IOException e){
-			this.error("Cannot open file", e);
+		} catch (Exception e){
+			this.warning("Cannot open file", e);
 			return null;
 		} finally {
 			try {
 				this.fileSystem.closeInputStream(is);
-			} catch (IOException e){
+			} catch (Exception e){
 				this.warning("Error closing file", e);
 			}
 		}
@@ -555,7 +577,13 @@ this.locatorType = LOCATOR_NONE;
 		try {
 			String path = "maps";
 			this.resourceLoad(this.mapList, "/data/" + path);
-			if(this.fileSystem != null) this.fileSystem.load(this.mapList, path);
+			if(this.fileSystem != null){
+				try {
+					this.fileSystem.load(this.mapList, path);
+				} catch (Exception e){
+					this.warning("Unable to load filesystem maps", e);
+				}
+			}
 			this.info("Loaded " + this.mapList.getMapCount() + " maps");
 			this.mapList.update();
 		} catch (Exception e){
@@ -597,7 +625,13 @@ this.locatorType = LOCATOR_NONE;
 		String name = map.name + "/" + x + "_" + y;
 		Image ret = this.getResImage("/data/" + name);
 		if(ret != null) return ret;
-		if(this.fileSystem != null) return this.fileSystemGetImage(name);
+		if(this.fileSystem != null){
+			try {
+				return this.fileSystemGetImage(name);
+			} catch (Exception e){
+				this.warning("Error loading image from filesystem", e);
+			}
+		}
 		return null;
 	}
 	
