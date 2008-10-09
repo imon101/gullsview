@@ -71,12 +71,20 @@ public abstract class Console {
 	
 	public abstract void print(String text, String color);
 	
+	public void print(String text){
+		this.print(text, null);
+	}
+	
 	public void printRes(String resid, String color){
 		this.print(this.r(resid), color);
 	}
 	
 	public void printRes(String resid){
 		this.printRes(resid, null);
+	}
+	
+	public void printSeparator(){
+		this.print("<<<>=-=-=-=-=-=-=-=-=-=-=-=-=<>>>");
 	}
 	
 	public abstract void error(String message, Throwable t);

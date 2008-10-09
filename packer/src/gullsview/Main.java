@@ -13,7 +13,12 @@ public class Main {
 						console = new StdioConsole();
 					} else if("properties".equals(svvitch)){
 						String fileName = argv[++i];
-						console = new PropertiesConsole(fileName);
+						String resPrefix = "resource:";
+						if(fileName.startsWith(resPrefix)){
+							console = new PropertiesConsole(Main.class.getResourceAsStream(fileName.substring(resPrefix.length())));
+						} else {
+							console = new PropertiesConsole(fileName);
+						}
 					} else if("swing".equals(svvitch)){
 						console = new SwingConsole();
 					} else {

@@ -57,6 +57,9 @@ public class Packer {
 		
 		int count = this.console.inputInt("map-count", null, 1);
 		for(int i = 0; i < count; i++){
+			this.console.printSeparator();
+			this.console.print(this.console.r("map-no-params") + " " + (i + 1));
+			this.console.printSeparator();
 			Map map = new Map();
 			this.processMap(map, i);
 			this.maps.add(map);
@@ -79,9 +82,13 @@ public class Packer {
 			}
 		}
 		
+		this.console.printSeparator();
 		this.console.printRes("start");
+		this.console.printSeparator();
 		this.filterJars(path, flagFc, flagBt, flagLapi, flagM3g);
+		this.console.printSeparator();
 		this.console.printRes("finish");
+		this.console.printSeparator();
 	}
 	
 	public void close(){
@@ -116,10 +123,12 @@ public class Packer {
 	private void filterJar(String pathPrefix, final String[] constraints, final String extensions) throws IOException {
 		JarFilter.Filter filter = new JarFilter.Filter(){
 			public boolean processEntry(String name){
+				Packer.this.console.print(Packer.this.console.r("processing-entry") + ": " + name);
 				return Packer.this.isRestricted(name) ? Packer.this.isAllowed(name, constraints) : true;
 			}
 			
 			public void processManifest(java.util.Map<String, String> values){
+				Packer.this.console.printRes("processing-manifest");
 				String descId = "MIDlet-Description";
 				String desc = values.get(descId);
 				if(desc != null) values.put(descId, desc + " (extensions: " + extensions + ")");
@@ -243,6 +252,7 @@ public class Packer {
 	}
 	
 	private void writeResourceImage(FileDumper fd, String path, String resource) throws IOException {
+		this.console.print(this.console.r("writing-resource-entry") + ": " + resource + " => " + path);
 		fd.next(path);
 		InputStream is = (this.getClass()).getResourceAsStream(resource);
 		if(is == null) throw new IOException("Cannot find resource \"" + resource + "\"");

@@ -25,19 +25,20 @@ public class SwingConsole extends Console {
 		public ColorOutput(){
 			this.lines = new ArrayList<String>();
 			this.colors = new ArrayList<Color>();
+			this.setFont((this.getFont()).deriveFont(Font.BOLD));
 		}
 		
 		private Color getColor(String name){
 			if("red".equalsIgnoreCase(name)){
-				return Color.red;
+				return Color.red.brighter();
 			} else if("blue".equalsIgnoreCase(name)){
-				return Color.blue;
+				return Color.blue.darker();
 			} else if("gray".equalsIgnoreCase(name)){
 				return Color.gray;
 			} else if("orange".equalsIgnoreCase(name)){
-				return Color.orange;
+				return Color.orange.darker();
 			} else {
-				return Color.black;
+				return new Color(0xaa4400);
 			}
 		}
 		
@@ -49,6 +50,8 @@ public class SwingConsole extends Console {
 			this.height += fm.getHeight() + gap;
 			int w = fm.stringWidth(line);
 			if(this.width < w) this.width = w;
+			Container parent = this.getParent();
+			if(parent != null) parent.doLayout();
 			this.repaint();
 		}
 		
@@ -64,6 +67,7 @@ public class SwingConsole extends Console {
 				String line = this.lines.get(i);
 				Color color = this.colors.get(i);
 				g.setColor(color);
+				g.setFont(font);
 				g.drawString(line, 0, y);
 				y += fm.getHeight() + gap;
 			}
@@ -86,7 +90,7 @@ public class SwingConsole extends Console {
 		this.frame.addWindowListener(new WindowAdapter(){
 			public void windowClosing(WindowEvent we){
 				SwingConsole.this.dispose();
-				System.exit(0);
+				System.exit(1);
 			}
 		});
 		this.layout = new GridBagLayout();

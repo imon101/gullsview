@@ -12,9 +12,14 @@ public class StdioConsole extends Console {
 	
 	public String input(String id, String question, String def){
 		try {
-			System.out.print(question + " >>> ");
+			String text = question;
+			if((def != null) && ((def.trim()).length() > 0)) text += " [" + def + "]";
+			text += " >>> ";
+			System.out.print(text);
 			String value = this.br.readLine();
-			return (value == null) ? def : value;
+			if(value == null) throw new EOFException();
+			value = value.trim();
+			return (value.length() == 0) ? def : value;
 		} catch (IOException e){
 			throw new RuntimeException("Error in input", e);
 		}
