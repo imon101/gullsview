@@ -141,6 +141,7 @@ public class Packer {
 				Packer.this.writeResourceImage(fd, "data/world/0_1", "/world/0_1");
 				Packer.this.writeResourceImage(fd, "data/world/1_0", "/world/1_0");
 				Packer.this.writeResourceImage(fd, "data/world/1_1", "/world/1_1");
+				Packer.this.pushMapsData(fd, "data", true);
 			}
 		};
 		InputStream in = (this.getClass()).getResourceAsStream("/GullsView.mjar");
@@ -259,6 +260,34 @@ public class Packer {
 		byte[] buffer = new byte[1024];
 		int count;
 		while((count = is.read(buffer, 0, buffer.length)) > 0) fd.write(buffer, 0, count);
+	}
+	
+	private void pushMapsData(FileDumper fd, String path, boolean inner) throws IOException {
+		for(Map map : this.maps) this.pushMapData(map, fd, path, inner);
+	}
+	
+	private void pushMapData(Map map, FileDumper fd, String path, boolean inner) throws IOException {
+		if(map.dataIncluded != inner) return;
+		String prefix = path + "/" + map.name;
+		for(int y = 0; y < map.ycount; y++){
+			for(int x = 0; x < map.xcount; x++){
+				String name = java.text.MessageFormat.format(map.dataFormat, new Object[]{ new Integer(x), new Integer(y) });
+				File file = new File(new File(map.dataDir), name);
+				if(!file.exists()){
+					this.console.error(this.console.r("error-file-not-exist") + ": \"" + file.getCanonicalPath() + "\"");
+					throw new IOException("File does not exist: " + file);
+				}
+				if(!file.isFile()){
+					this.console.error(this.console.r("error-not-file") + ": \"" + file.getCanonicalPath() + "\"");
+					throw new IOException("Path is not file: " + file);
+				}
+				this.console.print(this.console.r("adding-segment-file") + ": " + file.getCanonicalPath());
+				fd.next(prefix + "/" + name);
+				FileInputStream fis = new FileInputStream(file);
+				fd.pump(fis);
+				fis.close();
+			}
+		}
 	}
 	
 	private String inputString(int index, String id, String def){

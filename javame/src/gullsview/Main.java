@@ -144,7 +144,6 @@ public class Main extends MIDlet implements CommandListener/*, Persistable*/ {
 				
 				this.mapList = new MapList(this, this.getResource("select-map"));
 				this.mapList.addCommand(this.backCommand);
-				this.mapList.addCommand(this.okCommand);
 				this.mapList.setCommandListener(this);
 				
 				if(this.flagJsr75FC) this.fileSystem = (FileSystem) this.newInstance("gullsview.FileSystemImpl");
@@ -266,10 +265,6 @@ this.locatorType = LOCATOR_NONE;
 				this.overlayList.saveItem(this.overlayItemIndex, this.overlayItemInsert, type, name, latStr, lonStr, lat, lon, hue, color);
 				this.updateOverlay();
 				this.show(this.inOverlayList ? (Displayable) this.overlayList : (Displayable) this.canvas);
-			} else if(disp == this.mapList){
-				this.setMap(this.mapList.getSelectedMap());
-				this.inOverlayList = false;
-				this.show(this.canvas);
 			}
 		} else if(cmd == this.editCommand){
 			int index = this.overlayList.getSelectedIndex();
@@ -322,6 +317,12 @@ this.locatorType = LOCATOR_NONE;
 			this.canvas.repaint();
 		} else if(cmd == this.mapSelectCommand){
 			this.show(this.mapList);
+		} else if(cmd == List.SELECT_COMMAND){
+			if(disp == this.mapList){
+				this.setMap(this.mapList.getSelectedMap());
+				this.inOverlayList = false;
+				this.show(this.canvas);
+			}
 		}
 	}
 	
@@ -359,11 +360,16 @@ this.locatorType = LOCATOR_NONE;
 		sb.append(" - ");
 		sb.append(e.toString());
 		Alert alert = new Alert(this.getResource("error"), sb.toString(), null, AlertType.ERROR);
-		alert.setTimeout(Alert.FOREVER);
-		// alert.setIndicator(new Gauge(null, false, 100, 0));
+		int time = 10000;
+		alert.setTimeout(time);
+		alert.setIndicator(new Gauge(null, false, time, 0));
 		alert.setCommandListener(this);
 		this.timer.cancel();
 		this.show(alert);
+		try {
+			Thread.sleep(time);
+		} catch (Exception e2){}
+		this.notifyDestroyed();
 	}
 	
 	private void warning(String message, Exception e){
@@ -549,10 +555,7 @@ this.locatorType = LOCATOR_NONE;
 		try {
 			String path = "maps";
 			this.resourceLoad(this.mapList, "/data/" + path);
-			if(this.fileSystem != null){
-				if(!this.fileSystem.load(this.mapList, path))
-					throw new Exception("File " + path + " does not exist");
-			}
+			if(this.fileSystem != null) this.fileSystem.load(this.mapList, path);
 			this.info("Loaded " + this.mapList.getMapCount() + " maps");
 			this.mapList.update();
 		} catch (Exception e){
