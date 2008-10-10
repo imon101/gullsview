@@ -334,14 +334,20 @@ this.locatorType = LOCATOR_NONE;
 				this.show(this.canvas);
 			}
 		} else if(cmd == this.switchToMidpCanvasCommand){
-			this.initCanvas(false);
-			this.setMap(this.mapList.getSelectedMap());
-			this.show(this.canvas);
+			this.changeCanvas(false);
 		} else if(cmd == this.switchToM3gCanvasCommand){
-			this.initCanvas(true);
-			this.setMap(this.mapList.getSelectedMap());
-			this.show(this.canvas);
+			this.changeCanvas(true);
 		}
+	}
+	
+	private void changeCanvas(boolean m3g){
+		int cx = this.canvas.getPositionX();
+		int cy = this.canvas.getPositionY();
+		this.initCanvas(m3g);
+		this.canvas.setSegment(this.map.segment, this.map.xcount, this.map.ycount);
+		this.canvas.setMap(this.map.id);
+		this.canvas.setPosition(cx, cy);
+		this.show(this.canvas);
 	}
 	
 	private boolean classExists(String name){
