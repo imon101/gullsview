@@ -10,7 +10,7 @@ import javax.microedition.rms.*;
 
 
 
-public class Main extends MIDlet implements CommandListener/*, Persistable*/ {
+public class Main extends MIDlet implements CommandListener, Persistable {
 	private static final int ACTION_HIDE_SPLASH = 1;
 	private static final int ACTION_SCROLL = 2;
 	private static final int ACTION_HIDE_MESSAGE = 3;
@@ -18,6 +18,9 @@ public class Main extends MIDlet implements CommandListener/*, Persistable*/ {
 	private static final int POINT_PATH_START = 1;
 	private static final int POINT_PATH_CONT = 2;
 	private static final int POINT_POI = 3;
+	
+	private static final int CANVAS_MIDP = 1;
+	private static final int CANVAS_M3G = 2;
 	
 	private static final int LOCATOR_NONE = 0;
 	private static final int LOCATOR_JSR179 = 1;
@@ -34,15 +37,18 @@ public class Main extends MIDlet implements CommandListener/*, Persistable*/ {
 	private Timer timer;
 	private TimerTask scrollTask;
 	private Map map;
-	private String dataPath;
 	private int overlayItemIndex;
 	private boolean overlayItemInsert;
 	private boolean inOverlayList;
 	private double targetLatitude = Double.NaN;
 	private double targetLongitude = Double.NaN;
-	private int locatorType;
+	private int locatorType = LOCATOR_NONE;
 	private Locator locator;
 	private FileSystem fileSystem;
+	private int canvasType = CANVAS_MIDP;
+	private String fileSystemParam;
+	private String locatorParam;
+	private boolean locatorStarted = false;
 	
 	private SplashScreen splash;
 	private Form aboutForm;
@@ -70,6 +76,8 @@ public class Main extends MIDlet implements CommandListener/*, Persistable*/ {
 	private Command mapSelectCommand;
 	private Command switchToMidpCanvasCommand;
 	private Command switchToM3gCanvasCommand;
+	private Command startLocatorCommand;
+	private Command stopLocatorCommand;
 	
 	public void startApp(){
 		this.timer = new Timer();
@@ -79,6 +87,8 @@ public class Main extends MIDlet implements CommandListener/*, Persistable*/ {
 				this.flagJsr082 = this.classExists("javax.bluetooth.LocalDevice") && this.classExists("gullsview.Jsr082Locator");
 				this.flagJsr179 = this.classExists("javax.microedition.location.Location") && this.classExists("gullsview.Jsr179Locator");
 				this.flagJsr184 = this.classExists("javax.microedition.m3g.Graphics3D") && this.classExists("gullsview.M3gMapCanvas");
+				
+				boolean loaded = this.recordStoreLoad(this, "preferences");
 				
 				this.display = Display.getDisplay(this);
 				
@@ -92,16 +102,20 @@ public class Main extends MIDlet implements CommandListener/*, Persistable*/ {
 				this.okCommand = new Command(this.getResource("ok"), Command.OK, 1);
 				this.exitCommand = new Command(this.getResource("exit"), Command.EXIT, 1);
 				this.backCommand = new Command(this.getResource("back"), Command.BACK, 1);
-				this.overlayListCommand = new Command(this.getResource("overlay"), Command.SCREEN, 1);
-				this.pathStartCommand = new Command(this.getResource("path-start"), Command.SCREEN, 2);
-				this.pathContCommand = new Command(this.getResource("path-cont"), Command.SCREEN, 3);
-				this.poiCommand = new Command(this.getResource("poi"), Command.SCREEN, 4);
-				this.cancelTargetCommand = new Command(this.getResource("cancel-target"), Command.SCREEN, 5);
-				this.mapSelectCommand = new Command(this.getResource("select-map"), Command.SCREEN, 6);
-				this.switchToMidpCanvasCommand = new Command(this.getResource("switch-to-midp-canvas"), Command.SCREEN, 7);
-				this.switchToM3gCanvasCommand = new Command(this.getResource("switch-to-m3g-canvas"), Command.SCREEN, 8);
-				this.aboutCommand = new Command(this.getResource("about"), Command.SCREEN, 9);
-				this.pauseCommand = new Command(this.getResource("pause"), Command.SCREEN, 10);
+				
+				this.mapSelectCommand = new Command(this.getResource("select-map"), Command.SCREEN, 1);
+				this.startLocatorCommand = new Command(this.getResource("start-locator"), Command.SCREEN, 2);
+				this.stopLocatorCommand = new Command(this.getResource("stop-locator"), Command.SCREEN, 2);
+				this.overlayListCommand = new Command(this.getResource("overlay"), Command.SCREEN, 3);
+				this.pathStartCommand = new Command(this.getResource("path-start"), Command.SCREEN, 4);
+				this.pathContCommand = new Command(this.getResource("path-cont"), Command.SCREEN, 5);
+				this.poiCommand = new Command(this.getResource("poi"), Command.SCREEN, 6);
+				this.cancelTargetCommand = new Command(this.getResource("cancel-target"), Command.SCREEN, 7);
+				this.switchToMidpCanvasCommand = new Command(this.getResource("switch-to-midp-canvas"), Command.SCREEN, 8);
+				this.switchToM3gCanvasCommand = new Command(this.getResource("switch-to-m3g-canvas"), Command.SCREEN, 9);
+				this.aboutCommand = new Command(this.getResource("about"), Command.SCREEN, 10);
+				this.pauseCommand = new Command(this.getResource("pause"), Command.SCREEN, 11);
+				
 				this.editCommand = new Command(this.getResource("edit"), Command.ITEM, 1);
 				this.moveToCommand = new Command(this.getResource("move-to"), Command.ITEM, 2);
 				this.setTargetCommand = new Command(this.getResource("set-target"), Command.ITEM, 3);
@@ -144,24 +158,31 @@ public class Main extends MIDlet implements CommandListener/*, Persistable*/ {
 				this.poiForm.addCommand(this.okCommand);
 				this.poiForm.setCommandListener(this);
 				
-				this.initCanvas(false);
+				this.initCanvas(this.canvasType);
 				
 				this.mapList = new MapList(this, this.getResource("select-map"));
 				this.mapList.addCommand(this.backCommand);
 				this.mapList.setCommandListener(this);
 				
-				if(this.flagJsr75FC) this.fileSystem = (FileSystem) this.newInstance("gullsview.FileSystemImpl");
+				if(this.flagJsr75FC){
+					this.fileSystem = (FileSystem) this.newInstance("gullsview.FileSystemImpl");
+					this.fileSystem.setParameter(this.fileSystemParam);
+				}
 				
 				this.loadMaps();
-				this.setMap(0);
+				
+				this.setMap(this.mapList.getSelectedMap());
 				
 				this.schedule(ACTION_HIDE_SPLASH, null, 2000, 0);
 				this.flagInit = true;
 				this.canvas.render();
 				
-this.locatorType = LOCATOR_NONE;
 				this.initLocator();
-				if(this.locator != null) this.locator.start();
+				if(this.locator != null){
+					this.locator.setParameter(this.locatorParam);
+					if(this.locatorStarted) this.locator.start();
+				}
+				this.updateLocatorCommands();
 			} catch(Exception e){
 				this.error("Error in initialization", e);
 			}
@@ -170,12 +191,12 @@ this.locatorType = LOCATOR_NONE;
 		}
 	}
 	
-	private void initCanvas(boolean m3g){
+	private void initCanvas(int type){
 		if(this.canvas != null) this.canvas.dispose();
 		this.canvas = null;
 		this.show(null);
-		if(!this.flagJsr184) m3g = false;
-		String className = m3g ? "gullsview.M3gMapCanvas" : "gullsview.MidpMapCanvas";
+		if(!this.flagJsr184) type = CANVAS_MIDP;
+		String className = (type == CANVAS_M3G) ? "gullsview.M3gMapCanvas" : "gullsview.MidpMapCanvas";
 		this.canvas = (MapCanvas) this.newInstance(className);
 		this.canvas.init(this);
 		this.canvas.addCommand(this.exitCommand);
@@ -187,12 +208,13 @@ this.locatorType = LOCATOR_NONE;
 		this.canvas.addCommand(this.aboutCommand);
 		this.canvas.addCommand(this.pauseCommand);
 		this.canvas.addCommand(this.mapSelectCommand);
-		if(m3g){
+		if(type == CANVAS_M3G){
 			this.canvas.addCommand(this.switchToMidpCanvasCommand);
 		} else {
 			if(this.flagJsr184) this.canvas.addCommand(this.switchToM3gCanvasCommand);
 		}
 		this.canvas.setCommandListener(this);
+		this.canvasType = type;
 	}
 	
 	public void pauseApp(){
@@ -204,6 +226,26 @@ this.locatorType = LOCATOR_NONE;
 		this.timer.cancel();
 		this.timer = null;
 		this.flagInit = false;
+	}
+	
+	public void save(DataOutput out) throws IOException {
+		out.writeInt(this.canvasType);
+		out.writeDouble(this.targetLatitude);
+		out.writeDouble(this.targetLongitude);
+		out.writeUTF(this.fileSystemParam != null ? this.fileSystemParam : "");
+		out.writeInt(this.locatorType);
+		out.writeUTF(this.locatorParam != null ? this.locatorParam : "");
+		out.writeBoolean(this.locatorStarted);
+	}
+	
+	public void load(DataInput in) throws IOException {
+		this.canvasType = in.readInt();
+		this.targetLatitude = in.readDouble();
+		this.targetLongitude = in.readDouble();
+		this.fileSystemParam = in.readUTF();
+		this.locatorType = in.readInt();
+		this.locatorParam = in.readUTF();
+		this.locatorStarted = in.readBoolean();
 	}
 	
 	public void commandAction(Command cmd, Displayable disp){
@@ -334,16 +376,20 @@ this.locatorType = LOCATOR_NONE;
 				this.show(this.canvas);
 			}
 		} else if(cmd == this.switchToMidpCanvasCommand){
-			this.changeCanvas(false);
+			this.changeCanvas(CANVAS_MIDP);
 		} else if(cmd == this.switchToM3gCanvasCommand){
-			this.changeCanvas(true);
+			this.changeCanvas(CANVAS_M3G);
+		} else if(cmd == this.startLocatorCommand){
+			this.switchLocatorState(true);
+		} else if(cmd == this.stopLocatorCommand){
+			this.switchLocatorState(false);
 		}
 	}
 	
-	private void changeCanvas(boolean m3g){
+	private void changeCanvas(int type){
 		int cx = this.canvas.getPositionX();
 		int cy = this.canvas.getPositionY();
-		this.initCanvas(m3g);
+		this.initCanvas(type);
 		this.canvas.setSegment(this.map.segment, this.map.xcount, this.map.ycount);
 		this.canvas.setMap(this.map.id);
 		this.canvas.setPosition(cx, cy);
@@ -502,6 +548,9 @@ this.locatorType = LOCATOR_NONE;
 			this.setResource("select-map", "Výběr mapy");
 			this.setResource("switch-to-midp-canvas", "Klasické zobrazení");
 			this.setResource("switch-to-m3g-canvas", "3D zobrazení");
+			this.setResource("start-locator", "Spustit GPS");
+			this.setResource("stop-locator", "Ukončit GPS");
+			this.setResource("locator-error", "Chyba GPS");
 		} else {
 			this.setResource("exit", "Exit");
 			this.setResource("pause", "Pause");
@@ -540,6 +589,9 @@ this.locatorType = LOCATOR_NONE;
 			this.setResource("select-map", "Map selection");
 			this.setResource("switch-to-midp-canvas", "Classic view");
 			this.setResource("switch-to-m3g-canvas", "3D view");
+			this.setResource("start-locator", "Start GPS");
+			this.setResource("stop-locator", "Stop GPS");
+			this.setResource("locator-error", "GPS error");
 		}
 		// this.setResource("", "");
 	}
@@ -918,6 +970,28 @@ this.locatorType = LOCATOR_NONE;
 	
 	public void locatorStatusUpdated(String status){
 		this.setMessage("GPS: " + this.getResource(status), 3000);
+	}
+	
+	private void updateLocatorCommands(){
+		this.canvas.removeCommand(this.startLocatorCommand);
+		this.canvas.removeCommand(this.stopLocatorCommand);
+		if(this.locator == null) return;
+		this.canvas.addCommand(this.locatorStarted ? this.stopLocatorCommand : this.startLocatorCommand);
+	}
+	
+	private void switchLocatorState(boolean start){
+		try {
+			if(start){
+				this.locator.start();
+			} else {
+				this.locator.stop();
+			}
+			this.locatorStarted = start;
+			this.updateLocatorCommands();
+		} catch (Exception e){
+			this.warning("Error switching locator state", e);
+			this.setMessage(this.getResource("locator-error"), 3000);
+		}
 	}
 }
 

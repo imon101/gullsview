@@ -12,7 +12,10 @@ public class FileSystemImpl implements FileSystem {
 	
 	public FileSystemImpl(){
 		this.conns = new Hashtable();
-this.mainPath = "c:/other/gullsview";
+	}
+	
+	public void setParameter(String param) throws Exception {
+		this.mainPath = param;
 	}
 	
 	public InputStream openInputStream(String path) throws IOException {

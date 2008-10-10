@@ -8,6 +8,8 @@ public abstract class Locator {
 		this.main = main;
 	}
 	
+	public void setParameter(String param) throws Exception {}
+	
 	public abstract void init() throws Exception;
 	
 	public abstract void start() throws Exception;
