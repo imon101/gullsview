@@ -4,6 +4,8 @@ import java.io.*;
 
 
 public class Map {
+	public int id;
+	
 	public String name;
 	public String title;
 	public String vendor;

@@ -31,6 +31,7 @@ public class MapList extends javax.microedition.lcdui.List implements Persistabl
 		int count = in.readInt();
 		for(int i = 0; i < count; i++){
 			Map map = new Map();
+			map.id = this.maps.size();
 			map.load(in);
 			this.maps.addElement(map);
 		}
