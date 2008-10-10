@@ -80,6 +80,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private Command stopLocatorCommand;
 	
 	public void startApp(){
+this.locatorType = LOCATOR_JSR082;
 		this.timer = new Timer();
 		if(!this.flagInit){
 			try {
