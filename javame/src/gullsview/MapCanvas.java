@@ -1,9 +1,10 @@
 package gullsview;
 
+import java.io.*;
 import javax.microedition.lcdui.*;
 
 
-public abstract class MapCanvas extends Canvas {
+public abstract class MapCanvas extends Canvas implements Persistable {
 	protected Main main;
 	protected boolean fullscreen;
 	protected boolean landscape;
@@ -38,6 +39,20 @@ public abstract class MapCanvas extends Canvas {
 	}
 	
 	public abstract void dispose();
+	
+	public void save(DataOutput out) throws IOException {
+		/*
+out.writeInt(this.mapId);
+canvas.getPositionX()
+canvas.getPositionY()
+canvas.fullscreen
+canvas.landscape
+		*/
+	}
+	
+	public void load(DataInput in) throws IOException {
+		
+	}
 	
 	public void setSegment(int segment, int xsegcount, int ysegcount){
 		this.segment = segment;
