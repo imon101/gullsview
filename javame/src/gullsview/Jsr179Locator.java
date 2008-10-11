@@ -3,58 +3,30 @@ package gullsview;
 import javax.microedition.location.*;
 
 
-public class Jsr179Locator extends Locator implements Runnable {
-	private Object locationProvider;
-	private int state;
-	private int timeout = 1000;
-	private Thread thread;
+public class Jsr179Locator extends Locator implements LocationListener {
+	private LocationProvider locationProvider;
 	
 	public void init() throws Exception {
 		Criteria criteria = new Criteria();
 		this.locationProvider = LocationProvider.getInstance(criteria);
-		this.state = LocationProvider.OUT_OF_SERVICE;
 	}
 	
-	public void start() throws Exception {
-		if(this.thread != null) throw new Exception("Cannot start Locator thread, another thread already running");
-		this.thread = new Thread(this);
-		this.thread.start();
+	public void start(){
+		this.locationProvider.setLocationListener(this, -1, -1, -1);
 	}
 	
-	public void stop() throws Exception {
-		this.thread.interrupt();
-		this.thread = null;
+	public void stop(){
+		this.locationProvider.setLocationListener(null, -1, -1, -1);
 	}
 	
-	public void run(){
-		LocationProvider lp = (LocationProvider) this.locationProvider;
-		for(;;){
-			try {
-				Location location = lp.getLocation(-1);
-				QualifiedCoordinates coord = location.getQualifiedCoordinates();
-				this.locationUpdated(coord.getLatitude(), coord.getLongitude());
-			} catch (Exception e){
-				e.printStackTrace();
-			}
-			int state = lp.getState();
-			if(state != this.state){
-				this.providerStateChanged(state);
-				this.state = state;
-			}
-			try {
-				Thread.sleep(this.timeout);
-			} catch (InterruptedException e){
-				break;
-			}
-		}
-	}
-	
-	public void locationUpdated(double lat, double lon){
-		System.out.println("Location: " + lat + " : " + lon);
+	public void locationUpdated(LocationProvider lp, Location location){
+		QualifiedCoordinates coord = location.getQualifiedCoordinates();
+		double lat = coord.getLatitude();
+		double lon = coord.getLongitude();
 		this.main.locatorPositionUpdated(lat, lon);
 	}
 	
-	public void providerStateChanged(int state){
+	public void providerStateChanged(LocationProvider lp, int state){
 		String text;
 		switch(state){
 		case LocationProvider.AVAILABLE: text = "available"; break;

@@ -23,15 +23,15 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private static final int CANVAS_MIDP = 1;
 	private static final int CANVAS_M3G = 2;
 	
-	private static final int LOCATOR_NONE = 0;
-	private static final int LOCATOR_JSR179 = 1;
-	private static final int LOCATOR_JSR082 = 2;
+	public static final int LOCATOR_NONE = 0;
+	public static final int LOCATOR_JSR179 = 1;
+	public static final int LOCATOR_JSR082 = 2;
 	
-	private boolean flagInit = false;
-	private boolean flagJsr75FC; // FileConn
-	private boolean flagJsr082; // BT
-	private boolean flagJsr179; // LAPI
-	private boolean flagJsr184; // M3G
+	public boolean flagInit = false;
+	public boolean flagJsr75FC; // FileConn
+	public boolean flagJsr082; // BT
+	public boolean flagJsr179; // LAPI
+	public boolean flagJsr184; // M3G
 	
 	private Display display;
 	private Hashtable resources;
@@ -59,6 +59,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private PointForm pathContForm;
 	private PointForm poiForm;
 	private MapList mapList;
+	private PreferenceForm preferenceForm;
 	
 	private Command okCommand;
 	private Command exitCommand;
@@ -79,9 +80,9 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private Command switchToM3gCanvasCommand;
 	private Command startLocatorCommand;
 	private Command stopLocatorCommand;
+	private Command preferenceCommand;
 	
 	public void startApp(){
-this.locatorType = LOCATOR_JSR082;
 		this.timer = new Timer();
 		if(!this.flagInit){
 			try {
@@ -115,13 +116,23 @@ this.locatorType = LOCATOR_JSR082;
 				this.cancelTargetCommand = new Command(this.getResource("cancel-target"), Command.SCREEN, 7);
 				this.switchToMidpCanvasCommand = new Command(this.getResource("switch-to-midp-canvas"), Command.SCREEN, 8);
 				this.switchToM3gCanvasCommand = new Command(this.getResource("switch-to-m3g-canvas"), Command.SCREEN, 9);
-				this.aboutCommand = new Command(this.getResource("about"), Command.SCREEN, 10);
-				this.pauseCommand = new Command(this.getResource("pause"), Command.SCREEN, 11);
+				this.preferenceCommand = new Command(this.getResource("preferences"), Command.SCREEN, 10);
+				this.aboutCommand = new Command(this.getResource("about"), Command.SCREEN, 11);
+				this.pauseCommand = new Command(this.getResource("pause"), Command.SCREEN, 12);
 				
 				this.editCommand = new Command(this.getResource("edit"), Command.ITEM, 1);
 				this.moveToCommand = new Command(this.getResource("move-to"), Command.ITEM, 2);
 				this.setTargetCommand = new Command(this.getResource("set-target"), Command.ITEM, 3);
 				this.removeCommand = new Command(this.getResource("remove"), Command.ITEM, 4);
+				
+				this.preferenceForm = new PreferenceForm(this);
+				if(this.flagJsr082 || this.flagJsr179){
+					this.preferenceForm.appendLocatorTypeChoice(this.flagJsr082, this.flagJsr179);
+					if(this.flagJsr082) this.preferenceForm.appendLocatorParam(this.locatorParam);
+				}
+				if(this.flagJsr75FC) this.preferenceForm.appendFileSystemParam(this.fileSystemParam);
+				this.preferenceForm.addCommand(this.okCommand);
+				this.preferenceForm.setCommandListener(this);
 				
 				this.aboutForm = this.createAboutForm();
 				this.aboutForm.addCommand(this.backCommand);
@@ -215,6 +226,7 @@ this.locatorType = LOCATOR_JSR082;
 		} else {
 			if(this.flagJsr184) this.canvas.addCommand(this.switchToM3gCanvasCommand);
 		}
+		if(!this.preferenceForm.isEmpty()) this.canvas.addCommand(this.preferenceCommand);
 		this.canvas.setCommandListener(this);
 		this.canvasType = type;
 	}
@@ -319,6 +331,21 @@ this.locatorType = LOCATOR_JSR082;
 				this.overlayList.saveItem(this.overlayItemIndex, this.overlayItemInsert, type, name, latStr, lonStr, lat, lon, hue, color);
 				this.updateOverlay();
 				this.show(this.inOverlayList ? (Displayable) this.overlayList : (Displayable) this.canvas);
+			} else if(disp == this.preferenceForm){
+				this.fileSystemParam = this.preferenceForm.getFileSystemParam();
+				try {
+					this.fileSystem.setParameter(this.fileSystemParam);
+				} catch (Exception e){
+					this.warning("Unable to change file system parameter", e);
+				}
+				int locatorType = this.preferenceForm.getLocatorType();
+				String locatorParam = this.preferenceForm.getLocatorParam();
+				try {
+					this.changeLocator(locatorType, locatorParam);
+				} catch (Exception e){
+					this.warning("Unable to change locator", e);
+				}
+				this.show(this.canvas);
 			}
 		} else if(cmd == this.editCommand){
 			int index = this.overlayList.getSelectedIndex();
@@ -385,6 +412,8 @@ this.locatorType = LOCATOR_JSR082;
 			this.schedule(ACTION_SWITCH_LOCATOR_STATE, Boolean.TRUE);
 		} else if(cmd == this.stopLocatorCommand){
 			this.schedule(ACTION_SWITCH_LOCATOR_STATE, Boolean.FALSE);
+		} else if(cmd == this.preferenceCommand){
+			this.show(this.preferenceForm);
 		}
 	}
 	
@@ -564,6 +593,18 @@ this.locatorType = LOCATOR_JSR082;
 			this.setResource("start-locator", "Spustit GPS");
 			this.setResource("stop-locator", "Ukončit GPS");
 			this.setResource("locator-error", "Chyba GPS");
+			this.setResource("preferences", "Nastavení");
+			this.setResource("locator", "GPS");
+			this.setResource("locator-none", "Žádná");
+			this.setResource("locator-jsr082", "Externí přes Bluetooth");
+			this.setResource("locator-jsr179", "Vestavěná");
+			this.setResource("locator-param", "Bluetooth adresa GPS");
+			this.setResource("filesystem-param", "Cesta k adresáři s daty");
+			this.setResource("", "");
+			this.setResource("", "");
+			this.setResource("", "");
+			this.setResource("", "");
+			this.setResource("", "");
 		} else {
 			this.setResource("exit", "Exit");
 			this.setResource("pause", "Pause");
@@ -605,6 +646,13 @@ this.locatorType = LOCATOR_JSR082;
 			this.setResource("start-locator", "Start GPS");
 			this.setResource("stop-locator", "Stop GPS");
 			this.setResource("locator-error", "GPS error");
+			this.setResource("preferences", "Preferences");
+			this.setResource("locator", "GPS");
+			this.setResource("locator-none", "None");
+			this.setResource("locator-jsr082", "Over Bluetooth");
+			this.setResource("locator-jsr179", "Built-in");
+			this.setResource("locator-param", "GPS Bluetooth address");
+			this.setResource("filesystem-param", "Path to data directory");
 		}
 		// this.setResource("", "");
 	}
@@ -945,6 +993,21 @@ this.locatorType = LOCATOR_JSR082;
 		return true;
 	}
 	
+	private void changeLocator(int locatorType, String locatorParam) throws Exception {
+		if(locatorType != this.locatorType){
+			if((this.locator != null) && this.locatorStarted) this.locator.stop();
+			this.locator = null;
+			this.locatorType = locatorType;
+			this.initLocator();
+		}
+		this.locatorParam = locatorParam;
+		if(this.locator != null){
+			this.locator.setParameter(this.locatorParam);
+			if(this.locatorStarted) this.locator.start();
+		}
+		this.updateLocatorCommands();
+	}
+	
 	private void initLocator() throws Exception {
 		String className = null;
 		switch(this.locatorType){
@@ -956,6 +1019,7 @@ this.locatorType = LOCATOR_JSR082;
 			break;
 		}
 		if(className == null) return;
+		this.info("Initializing locator " + className);
 		try {
 			this.locator = (Locator) this.newInstance(className);
 			this.locator.setOwner(this);
@@ -970,6 +1034,7 @@ this.locatorType = LOCATOR_JSR082;
 			this.warning("Error initializing Locator " + className, e);
 			throw new Exception("Error initializing locator: " + e.toString());
 		}
+		this.info("Locator initialized");
 	}
 	
 	private void setMessage(String message, int timeout){
