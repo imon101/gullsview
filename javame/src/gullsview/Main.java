@@ -14,6 +14,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private static final int ACTION_HIDE_SPLASH = 1;
 	private static final int ACTION_SCROLL = 2;
 	private static final int ACTION_HIDE_MESSAGE = 3;
+	private static final int ACTION_SWITCH_LOCATOR_STATE = 4;
 	
 	private static final int POINT_PATH_START = 1;
 	private static final int POINT_PATH_CONT = 2;
@@ -174,7 +175,7 @@ this.locatorType = LOCATOR_JSR082;
 				
 				this.setMap(this.mapList.getSelectedMap());
 				
-				this.schedule(ACTION_HIDE_SPLASH, null, 2000, 0);
+				this.schedule(ACTION_HIDE_SPLASH, null, 2000);
 				this.flagInit = true;
 				this.canvas.render();
 				
@@ -381,9 +382,9 @@ this.locatorType = LOCATOR_JSR082;
 		} else if(cmd == this.switchToM3gCanvasCommand){
 			this.changeCanvas(CANVAS_M3G);
 		} else if(cmd == this.startLocatorCommand){
-			this.switchLocatorState(true);
+			this.schedule(ACTION_SWITCH_LOCATOR_STATE, Boolean.TRUE);
 		} else if(cmd == this.stopLocatorCommand){
-			this.switchLocatorState(false);
+			this.schedule(ACTION_SWITCH_LOCATOR_STATE, Boolean.FALSE);
 		}
 	}
 	
@@ -462,6 +463,14 @@ this.locatorType = LOCATOR_JSR082;
 		return (text != null) ? text : "!" + name;
 	}
 	
+	private TimerTask schedule(final int action, final Object data){
+		return this.schedule(action, data, 1);
+	}
+	
+	private TimerTask schedule(final int action, final Object data, long delay){
+		return this.schedule(action, data, delay, -1);
+	}
+	
 	private TimerTask schedule(final int action, final Object data, long delay, long period){
 		TimerTask task = new TimerTask(){
 			public void run(){
@@ -494,6 +503,9 @@ this.locatorType = LOCATOR_JSR082;
 			String message = (String) data;
 			if(message == null) return;
 			if(message.equals(this.canvas.getMessage())) this.canvas.setMessage(null);
+			break;
+		case ACTION_SWITCH_LOCATOR_STATE:
+			this.switchLocatorState(((Boolean) data).booleanValue());
 			break;
 		}
 	}
@@ -962,7 +974,7 @@ this.locatorType = LOCATOR_JSR082;
 	
 	private void setMessage(String message, int timeout){
 		this.canvas.setMessage(message);
-		this.schedule(ACTION_HIDE_MESSAGE, message, timeout, -1);
+		this.schedule(ACTION_HIDE_MESSAGE, message, timeout);
 	}
 	
 	public void locatorPositionUpdated(double lat, double lon){
