@@ -1,0 +1,107 @@
+package gullsview;
+
+import java.io.*;
+
+
+public class BtsLocator extends Locator implements Runnable {
+	private Thread thread;
+	private int cellid;
+	private int lac;
+	private int timeout;
+	private String database;
+	
+	public void init(){
+		this.timeout = 60000;
+		this.database = "vodafone";
+	}
+	
+	public void start() throws Exception {
+		if(this.thread != null) throw new Exception("Already started");
+		this.cellid = this.lac = -1;
+		this.thread = new Thread(this);
+		this.thread.start();
+	}
+	
+	public void stop() throws Exception {
+		if(this.thread == null) throw new Exception("Not started");
+		this.thread.interrupt();
+		this.thread = null;
+	}
+	
+	public void run(){
+		try {
+			for(;;){
+				this.checkBts();
+				try {
+					Thread.sleep(this.timeout);
+				} catch (InterruptedException e){
+					break;
+				}
+			}
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	private void checkBts() throws Exception {
+		this.main.info("Checking BTS");
+		int cellid = this.getCellId();
+		int lac = this.getLAC();
+		if((cellid <= 0) || (lac <= 0)) return;
+		if((cellid == this.cellid) && (lac == this.lac)) return;
+		this.cellid = cellid;
+		this.lac = lac;
+		this.reportBts();
+	}
+	
+	private void reportBts() throws Exception {
+		this.main.info("Finding BTS position - started");
+		String resource = "/" + this.database + ".bts";
+		InputStream is = (this.getClass()).getResourceAsStream(resource);
+		if(is == null) throw new Exception("BTS database " + resource + " does not exist");
+		DataInputStream dis = new DataInputStream(is);
+		try {
+			int count = dis.readInt();
+			for(int i = 0; i < count; i++){
+				// String title = dis.readUTF();
+				double lat = dis.readDouble();
+				double lon = dis.readDouble();
+				int cellcount = dis.readInt();
+				for(int j = 0; j < cellcount; j++){
+					int cellid = dis.readInt();
+					int lac = dis.readInt();
+					if((cellid == this.cellid) && (lac == this.lac)){
+						this.main.locatorPositionUpdated(lat, lon);
+						return;
+					}
+				}
+				this.main.locatorStatusUpdated("out-of-service");
+			}
+		} finally {
+			dis.close();
+			this.main.info("Finding BTS position - finished");
+		}
+	}
+	
+	private int getIntProperty(String name, int radix){
+		String s = System.getProperty(name);
+		if(s == null) return -1;
+		try {
+			return Integer.parseInt(s, radix);
+		} catch (Exception e){
+			return -2;
+		}
+	}
+	
+	private int getCellId(){
+return 0x6d89;
+//		return this.getIntProperty("com.sonyericsson.net.cellid", 16);
+	}
+	
+	private int getLAC(){
+return 0x17a1;
+//		return this.getIntProperty("com.sonyericsson.net.lac", 16);
+	}
+}
+
+
