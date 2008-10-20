@@ -15,6 +15,14 @@ public class MapList extends javax.microedition.lcdui.List implements Persistabl
 		this.maps = new Vector();
 	}
 	
+	public int getMapId(String name){
+		for(int i = 0; i < this.maps.size(); i++){
+			Map map = (Map) this.maps.elementAt(i);
+			if(map.name.equals(name)) return i;
+		}
+		return -1;
+	}
+	
 	public Map getMap(int id){
 		return (Map) this.maps.elementAt(id);
 	}
@@ -25,6 +33,11 @@ public class MapList extends javax.microedition.lcdui.List implements Persistabl
 	
 	public int getSelectedMap(){
 		return this.getSelectedIndex();
+	}
+	
+	public void setSelectedMap(String name){
+		int id = this.getMapId(name);
+		this.setSelectedIndex(id < 0 ? 0 : id, true);
 	}
 	
 	public void load(DataInput in) throws IOException {

@@ -26,12 +26,14 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	public static final int LOCATOR_NONE = 0;
 	public static final int LOCATOR_JSR179 = 1;
 	public static final int LOCATOR_JSR082 = 2;
+	public static final int LOCATOR_BTS = 3;
 	
 	public boolean flagInit = false;
 	public boolean flagJsr75FC; // FileConn
 	public boolean flagJsr082; // BT
 	public boolean flagJsr179; // LAPI
 	public boolean flagJsr184; // M3G
+	public boolean flagBtsLocator;
 	
 	private Display display;
 	private Hashtable resources;
@@ -50,6 +52,11 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private String fileSystemParam;
 	private String locatorParam;
 	private boolean locatorStarted = false;
+	private String loadedMapName;
+	private double loadedLatitude;
+	private double loadedLongitude;
+	private boolean loadedLandscape;
+	private boolean loadedFullscreen;
 	
 	private SplashScreen splash;
 	private Form aboutForm;
@@ -90,8 +97,13 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				this.flagJsr082 = this.classExists("javax.bluetooth.LocalDevice") && this.classExists("gullsview.Jsr082Locator");
 				this.flagJsr179 = this.classExists("javax.microedition.location.Location") && this.classExists("gullsview.Jsr179Locator");
 				this.flagJsr184 = this.classExists("javax.microedition.m3g.Graphics3D") && this.classExists("gullsview.M3gMapCanvas");
+				this.flagBtsLocator = this.classExists("gullsview.BtsLocator");
 				
-				boolean loaded = this.recordStoreLoad(this, "preferences");
+				try {
+					boolean loaded = this.recordStoreLoad(this, "preferences");
+				} catch (Exception e){
+					this.warning("Cannot load preferences", e);
+				}
 				
 				this.display = Display.getDisplay(this);
 				
@@ -127,7 +139,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				
 				this.preferenceForm = new PreferenceForm(this);
 				if(this.flagJsr082 || this.flagJsr179){
-					this.preferenceForm.appendLocatorTypeChoice(this.flagJsr082, this.flagJsr179);
+					this.preferenceForm.appendLocatorTypeChoice(this.flagJsr082, this.flagJsr179, this.flagBtsLocator, this.locatorType);
 					if(this.flagJsr082) this.preferenceForm.appendLocatorParam(this.locatorParam);
 				}
 				if(this.flagJsr75FC) this.preferenceForm.appendFileSystemParam(this.fileSystemParam);
@@ -184,10 +196,16 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				
 				this.loadMaps();
 				
+				this.mapList.setSelectedMap(this.loadedMapName);
 				this.setMap(this.mapList.getSelectedMap());
 				
 				this.schedule(ACTION_HIDE_SPLASH, null, 2000);
+				
 				this.flagInit = true;
+				
+				this.canvas.setLandscape(this.loadedLandscape);
+				this.canvas.setFullscreen(this.loadedFullscreen);
+				this.setPosition(this.loadedLatitude, this.loadedLongitude);
 				this.canvas.render();
 				
 				this.initLocator();
@@ -237,6 +255,12 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	}
 	
 	public void destroyApp(boolean unconditional){
+		try {
+			this.info("Saving preferences");
+			this.recordStoreSave(this, "preferences");
+		} catch (Exception e){
+			this.warning("Cannot save preferences", e);
+		}
 		this.timer.cancel();
 		this.timer = null;
 		this.flagInit = false;
@@ -250,6 +274,13 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		out.writeInt(this.locatorType);
 		out.writeUTF(this.locatorParam != null ? this.locatorParam : "");
 		out.writeBoolean(this.locatorStarted);
+		out.writeUTF(this.map.name);
+		double[] latlon = new double[2];
+		this.getPosition(latlon);
+		out.writeDouble(latlon[0]);
+		out.writeDouble(latlon[1]);
+		out.writeBoolean(this.canvas.isLandscape());
+		out.writeBoolean(this.canvas.isFullscreen());
 	}
 	
 	public void load(DataInput in) throws IOException {
@@ -260,10 +291,16 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		this.locatorType = in.readInt();
 		this.locatorParam = in.readUTF();
 		this.locatorStarted = in.readBoolean();
+		this.loadedMapName = in.readUTF();
+		this.loadedLatitude = in.readDouble();
+		this.loadedLongitude = in.readDouble();
+		this.loadedLandscape = in.readBoolean();
+		this.loadedFullscreen = in.readBoolean();
 	}
 	
 	public void commandAction(Command cmd, Displayable disp){
 		if(cmd == this.exitCommand){
+			this.destroyApp(true);
 			this.notifyDestroyed();
 		} else if(cmd == this.pauseCommand){
 			this.show(null);
@@ -449,7 +486,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		this.show(alert);
 	}
 	
-	private void error(String message, Exception e){
+	public void error(String message, Exception e){
 		String text = "ERROR: " + message;
 		if(e != null) text += " " + e.toString();
 		System.err.println(text);
@@ -473,13 +510,14 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		this.notifyDestroyed();
 	}
 	
-	private void warning(String message, Exception e){
+	public void warning(String message, Exception e){
 		String text = "WARNING: " + message;
 		if(e != null) text += " " + e.toString();
 		System.err.println(text);
+		if(e != null) e.printStackTrace();
 	}
 	
-	private void info(String message){
+	public void info(String message){
 		System.out.println("INFO: " + message);
 	}
 	
@@ -488,6 +526,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	}
 	
 	public String getResource(String name){
+		if(this.resources == null) return "!!" + name;
 		String text = (String) this.resources.get(name);
 		return (text != null) ? text : "!" + name;
 	}
@@ -594,13 +633,13 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 			this.setResource("stop-locator", "Ukončit GPS");
 			this.setResource("locator-error", "Chyba GPS");
 			this.setResource("preferences", "Nastavení");
-			this.setResource("locator", "GPS");
-			this.setResource("locator-none", "Žádná");
-			this.setResource("locator-jsr082", "Externí přes Bluetooth");
-			this.setResource("locator-jsr179", "Vestavěná");
+			this.setResource("locator", "Lokátor");
+			this.setResource("locator-none", "Žádný");
+			this.setResource("locator-jsr082", "Externí GPS přes Bluetooth");
+			this.setResource("locator-jsr179", "Vestavěná GPS");
+			this.setResource("locator-bts", "Podle GSM vysílačů");
 			this.setResource("locator-param", "Bluetooth adresa GPS");
 			this.setResource("filesystem-param", "Cesta k adresáři s daty");
-			this.setResource("", "");
 			this.setResource("", "");
 			this.setResource("", "");
 			this.setResource("", "");
@@ -647,10 +686,11 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 			this.setResource("stop-locator", "Stop GPS");
 			this.setResource("locator-error", "GPS error");
 			this.setResource("preferences", "Preferences");
-			this.setResource("locator", "GPS");
+			this.setResource("locator", "Locator");
 			this.setResource("locator-none", "None");
-			this.setResource("locator-jsr082", "Over Bluetooth");
-			this.setResource("locator-jsr179", "Built-in");
+			this.setResource("locator-jsr082", "GPS over Bluetooth");
+			this.setResource("locator-jsr179", "Built-in GPS");
+			this.setResource("locator-bts", "Using BTS");
 			this.setResource("locator-param", "GPS Bluetooth address");
 			this.setResource("filesystem-param", "Path to data directory");
 		}
@@ -815,9 +855,13 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		out[1] = y;
 	}
 	
+	private void getPosition(double[] latlon){
+		this.mapToReal(this.map, this.canvas.getPositionX(), this.canvas.getPositionY(), latlon);
+	}
+	
 	private String[] getPositionStr(){
 		double[] rcoords = new double[2];
-		this.mapToReal(this.map, this.canvas.getPositionX(), this.canvas.getPositionY(), rcoords);
+		this.getPosition(rcoords);
 		String[] coords = new String[2];
 		coords[0] = this.formatCoord(rcoords[0]);
 		coords[1] = this.formatCoord(rcoords[1]);
@@ -995,7 +1039,13 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	
 	private void changeLocator(int locatorType, String locatorParam) throws Exception {
 		if(locatorType != this.locatorType){
-			if((this.locator != null) && this.locatorStarted) this.locator.stop();
+			if((this.locator != null) && this.locatorStarted){
+				try {
+					this.locator.stop();
+				} catch (Exception e){
+					this.warning("Cannot stop locator to change it", e);
+				}
+			}
 			this.locator = null;
 			this.locatorType = locatorType;
 			this.initLocator();
@@ -1017,6 +1067,9 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		case LOCATOR_JSR082:
 			if(this.flagJsr082) className = "gullsview.Jsr082Locator";
 			break;
+		case LOCATOR_BTS:
+			if(this.flagBtsLocator) className = "gullsview.BtsLocator";
+			break;
 		}
 		if(className == null) return;
 		this.info("Initializing locator " + className);
@@ -1037,7 +1090,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		this.info("Locator initialized");
 	}
 	
-	private void setMessage(String message, int timeout){
+	public void setMessage(String message, int timeout){
 		this.canvas.setMessage(message);
 		this.schedule(ACTION_HIDE_MESSAGE, message, timeout);
 	}
