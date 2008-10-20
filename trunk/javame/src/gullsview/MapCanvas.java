@@ -4,7 +4,7 @@ import java.io.*;
 import javax.microedition.lcdui.*;
 
 
-public abstract class MapCanvas extends Canvas implements Persistable {
+public abstract class MapCanvas extends Canvas {
 	protected Main main;
 	protected boolean fullscreen;
 	protected boolean landscape;
@@ -39,20 +39,6 @@ public abstract class MapCanvas extends Canvas implements Persistable {
 	}
 	
 	public abstract void dispose();
-	
-	public void save(DataOutput out) throws IOException {
-		/*
-out.writeInt(this.mapId);
-canvas.getPositionX()
-canvas.getPositionY()
-canvas.fullscreen
-canvas.landscape
-		*/
-	}
-	
-	public void load(DataInput in) throws IOException {
-		
-	}
 	
 	public void setSegment(int segment, int xsegcount, int ysegcount){
 		this.segment = segment;
@@ -158,16 +144,11 @@ canvas.landscape
 			break;
 		case KEY_STAR:
 			if(!pressed) return;
-			this.fullscreen = !this.fullscreen;
-			this.setFullScreenMode(this.fullscreen);
-			this.updateDim();
-			this.repaint();
+			this.setFullscreen(!this.fullscreen);
 			break;
 		case KEY_POUND:
 			if(!pressed) return;
-			this.landscape = !this.landscape;
-			this.updateDim();
-			this.repaint();
+			this.setLandscape(!this.landscape);
 			break;
 		default:
 			int action = this.getGameAction(code);
@@ -190,6 +171,27 @@ canvas.landscape
 				break;
 			}
 		}
+	}
+	
+	public boolean isLandscape(){
+		return this.landscape;
+	}
+	
+	public void setLandscape(boolean on){
+		this.landscape = on;
+		this.updateDim();
+		this.repaint();
+	}
+	
+	public boolean isFullscreen(){
+		return this.fullscreen;
+	}
+	
+	public void setFullscreen(boolean on){
+		this.fullscreen = on;
+		this.setFullScreenMode(this.fullscreen);
+		this.updateDim();
+		this.repaint();
 	}
 	
 	private void scrollCommandRaw(int dx, int dy, boolean pressed){
