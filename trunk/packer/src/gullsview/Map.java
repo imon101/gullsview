@@ -12,6 +12,8 @@ public class Map {
 	public int segment;
 	public int xcount, ycount;
 	public double defaultx, defaulty;
+	public boolean mercator;
+	public int segoffsetx, segoffsety;
 	public double locax, locay, locbx, locby, loccx, loccy;
 	public double realax, realay, realbx, realby, realcx, realcy;
 	
@@ -30,6 +32,9 @@ public class Map {
 		out.writeInt(this.ycount);
 		out.writeDouble(this.defaultx);
 		out.writeDouble(this.defaulty);
+		out.writeBoolean(this.mercator);
+		out.writeInt(this.segoffsetx);
+		out.writeInt(this.segoffsety);
 		out.writeDouble(this.locax);
 		out.writeDouble(this.locay);
 		out.writeDouble(this.locbx);
