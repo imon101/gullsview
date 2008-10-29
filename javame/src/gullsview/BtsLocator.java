@@ -61,6 +61,8 @@ public class BtsLocator extends Locator implements Runnable {
 		if(is == null) throw new Exception("BTS database " + resource + " does not exist");
 		DataInputStream dis = new DataInputStream(is);
 		try {
+double tlat = Double.NaN;
+double tlon = Double.NaN;
 			int count = dis.readInt();
 			for(int i = 0; i < count; i++){
 				// String title = dis.readUTF();
@@ -71,12 +73,21 @@ public class BtsLocator extends Locator implements Runnable {
 					int cellid = dis.readInt();
 					int lac = dis.readInt();
 					if((cellid == this.cellid) && (lac == this.lac)){
-						this.main.locatorPositionUpdated(lat, lon);
+						//this.main.locatorPositionUpdated(lat, lon);
+this.main.locatorPositionUpdated(lon, lat);
 						return;
 					}
+if((cellid == this.cellid) && ((lac & 0xff00) == (this.lac & 0xff00))){
+tlat = lat;
+tlon = lon;
+}
 				}
-				this.main.locatorStatusUpdated("out-of-service");
 			}
+if(!Double.isNaN(tlat) && !Double.isNaN(tlon)){
+this.main.locatorPositionUpdated(tlon, tlat);
+return;
+}
+			this.main.locatorStatusUpdated("out-of-service");
 		} finally {
 			dis.close();
 			this.main.info("Finding BTS position - finished");
@@ -94,13 +105,11 @@ public class BtsLocator extends Locator implements Runnable {
 	}
 	
 	private int getCellId(){
-return 0x6d89;
-//		return this.getIntProperty("com.sonyericsson.net.cellid", 16);
+		return this.getIntProperty("com.sonyericsson.net.cellid", 16);
 	}
 	
 	private int getLAC(){
-return 0x17a1;
-//		return this.getIntProperty("com.sonyericsson.net.lac", 16);
+		return this.getIntProperty("com.sonyericsson.net.lac", 16);
 	}
 }
 
