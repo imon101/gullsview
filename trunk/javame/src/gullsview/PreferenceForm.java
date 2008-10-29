@@ -1,0 +1,76 @@
+package gullsview;
+
+import java.util.*;
+import javax.microedition.lcdui.*;
+
+
+public class PreferenceForm extends Form {
+	private Main main;
+	private boolean empty;
+	private ChoiceGroup locator;
+	private Vector locatorTypes;
+	private TextField locatorParamField;
+	private TextField fileSystemParamField;
+	
+	public PreferenceForm(Main main){
+		super(main.getResource("preferences"));
+		this.main = main;
+		this.empty = true;
+	}
+	
+	public boolean isEmpty(){
+		return this.empty;
+	}
+	
+	public void appendLocatorTypeChoice(boolean jsr082, boolean jsr179, boolean bts, int locatorType){
+		this.locator = new ChoiceGroup(this.main.getResource("locator"), Choice.EXCLUSIVE);
+		this.locatorTypes = new Vector();
+		this.locator.append(this.main.getResource("locator-none"), null);
+		this.locatorTypes.addElement(new Integer(Main.LOCATOR_NONE));
+		if(jsr082){
+			this.locator.append(this.main.getResource("locator-jsr082"), null);
+			this.locatorTypes.addElement(new Integer(Main.LOCATOR_JSR082));
+		}
+		if(jsr179){
+			this.locator.append(this.main.getResource("locator-jsr179"), null);
+			this.locatorTypes.addElement(new Integer(Main.LOCATOR_JSR179));
+		}
+		if(bts){
+			this.locator.append(this.main.getResource("locator-bts"), null);
+			this.locatorTypes.addElement(new Integer(Main.LOCATOR_BTS));
+		}
+		for(int i = 0; i < this.locatorTypes.size(); i++){
+			if(((Integer) this.locatorTypes.elementAt(i)).intValue() == locatorType)
+				this.locator.setSelectedIndex(i, true);
+		}
+		this.append(this.locator);
+		this.empty = false;
+	}
+	
+	public int getLocatorType(){
+		if(this.locator == null) return Main.LOCATOR_NONE;
+		return ((Integer) this.locatorTypes.elementAt(this.locator.getSelectedIndex())).intValue();
+	}
+	
+	public void appendLocatorParam(String locatorParam){
+		this.locatorParamField = new TextField(this.main.getResource("locator-param"), locatorParam != null ? locatorParam : "", 20, TextField.ANY);
+		this.append(this.locatorParamField);
+		this.empty = false;
+	}
+	
+	public String getLocatorParam(){
+		return (this.locatorParamField != null) ? this.locatorParamField.getString() : null;
+	}
+	
+	public void appendFileSystemParam(String fileSystemParam){
+		this.fileSystemParamField = new TextField(this.main.getResource("filesystem-param"), fileSystemParam != null ? fileSystemParam : "", 100, TextField.ANY);
+		this.append(this.fileSystemParamField);
+		this.empty = false;
+	}
+	
+	public String getFileSystemParam(){
+		return (this.fileSystemParamField != null) ? this.fileSystemParamField.getString() : null;
+	}
+}
+
+
