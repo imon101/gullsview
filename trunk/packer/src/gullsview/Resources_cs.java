@@ -64,9 +64,9 @@ public class Resources_cs extends ListResourceBundle {
 		{"usage-3", "-stdio - spustí aplikaci v textovém režimu (z textové konzole)"},
 		{"usage-4", "-properties FILE - spustí aplikaci v dávkovém režimu - odpovědi na všechny dotazy čerpá ze souboru FILE ve formátu Java Properties"},
 		{"usage-5", "-swing - spustí aplikaci v grafickém režimu (výchozí volba)"},
-		{"", ""},
-		{"", ""},
-		{"", ""},
+		{"mercator", "Jsou vstupní data vytvořena v projekci jménem Mercator? (Mercator používá např. projekt www.openstreetmap.org nebo maps.google.com)"},
+		{"segoffsetx", "Zadejte offset levé horní dlaždice na X-ové ose (tj. globální x-ový index té dlaždice mapy, která je interně uložena v souboru jménem 0_0)"},
+		{"segoffsety", "Zadejte offset levé horní dlaždice na Y-ové ose (tj. globální y-ový index té dlaždice mapy, která je interně uložena v souboru jménem 0_0)"},
 		{"", ""},
 	};
 	

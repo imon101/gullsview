@@ -216,20 +216,26 @@ public class Packer {
 		map.segment = this.inputInt(index, "segment", 256);
 		while(map.xcount <= 0) map.xcount = this.inputInt(index, "xcount", 1);;
 		while(map.ycount <= 0) map.ycount = this.inputInt(index, "ycount", 1);;
-		map.locax = 0;
-		map.locay = 0;
-		map.locbx = map.segment * map.xcount;
-		map.locby = 0;
-		map.loccx = 0;
-		map.loccy = map.segment * map.ycount;
-		map.realay = this.inputCoord(index, "lt-lat", 0);
-		map.realax = this.inputCoord(index, "lt-lon", 0);
-		map.realby = this.inputCoord(index, "rt-lat", 0);
-		map.realbx = this.inputCoord(index, "rt-lon", 0);
-		map.realcy = this.inputCoord(index, "lb-lat", 0);
-		map.realcx = this.inputCoord(index, "lb-lon", 0);
-		map.defaulty = this.inputCoord(index, "lat", (map.realay + map.realcy) / 2);
-		map.defaultx = this.inputCoord(index, "lon", (map.realax + map.realbx) / 2);
+		map.mercator = this.inputBoolean(index, "mercator", true);
+		if(map.mercator){
+			map.segoffsetx = this.inputInt(index, "segoffsetx", 0);
+			map.segoffsety = this.inputInt(index, "segoffsety", 0);
+		} else {
+			map.locax = 0;
+			map.locay = 0;
+			map.locbx = map.segment * map.xcount;
+			map.locby = 0;
+			map.loccx = 0;
+			map.loccy = map.segment * map.ycount;
+			map.realay = this.inputCoord(index, "lt-lat", 0);
+			map.realax = this.inputCoord(index, "lt-lon", 0);
+			map.realby = this.inputCoord(index, "rt-lat", 0);
+			map.realbx = this.inputCoord(index, "rt-lon", 0);
+			map.realcy = this.inputCoord(index, "lb-lat", 0);
+			map.realcx = this.inputCoord(index, "lb-lon", 0);
+			map.defaulty = this.inputCoord(index, "lat", (map.realay + map.realcy) / 2);
+			map.defaultx = this.inputCoord(index, "lon", (map.realax + map.realbx) / 2);
+		}
 		this.processMapData(map, index);
 	}
 	
@@ -254,24 +260,15 @@ public class Packer {
 		map.title = this.console.r("world");
 		map.vendor = "";
 		map.secchunk = "";
-		map.scale = 0;
+		map.scale = 1;
 		map.segment = 256;
 		map.xcount = 2;
 		map.ycount = 2;
 		map.defaultx = 0;
 		map.defaulty = 0;
-		map.locax = 0;
-		map.locay = 0;
-		map.locbx = map.segment * map.xcount;
-		map.locby = 0;
-		map.loccx = 0;
-		map.loccy = map.segment * map.ycount;
-		map.realax = 90;
-		map.realay = -180;
-		map.realbx = 90;
-		map.realby = 180;
-		map.realcx = -90;
-		map.realcy = -180;
+		map.mercator = true;
+		map.segoffsetx = 0;
+		map.segoffsety = 0;
 	}
 	
 	private void writeMaps(FileDumper fd) throws IOException {

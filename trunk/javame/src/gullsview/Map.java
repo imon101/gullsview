@@ -50,28 +50,28 @@ public class Map {
 		this.realcy = in.readDouble();
 	}
 	
-	public synchronized boolean insideMap(double lon, double lat){
-		this.realToMap(lon, lat, iout);
-		return this.insideReal(iout[0], iout[1]);
+	public synchronized boolean insideGlobal(double lon, double lat){
+		this.toLocal(lon, lat, iout);
+		return this.insideLocal(iout[0], iout[1]);
 	}
 	
-	public boolean insideReal(int x, int y){
+	public boolean insideLocal(int x, int y){
 		return (x >= 0) && (x < (this.xcount * this.segment)) && (y >= 0) && (y < (this.ycount * this.segment));
 	}
 	
-	public void realToMap(double lon, double lat, int[] out){
+	public void toLocal(double lon, double lat, int[] out){
 		if(this.mercator){
-			this.mercatorRealToMap(lon, lat, out);
+			this.mercatorToLocal(lon, lat, out);
 		} else {
-			this.bilinearRealToMap(lon, lat, out);
+			this.bilinearToLocal(lon, lat, out);
 		}
 	}
 	
-	public void mapToReal(int x, int y, double[] out){
+	public void toGlobal(int x, int y, double[] out){
 		if(this.mercator){
-			this.mercatorMapToReal(x, y, out);
+			this.mercatorToGlobal(x, y, out);
 		} else {
-			this.bilinearMapToReal(x, y, out);
+			this.bilinearToGlobal(x, y, out);
 		}
 	}
 	
@@ -83,7 +83,7 @@ public class Map {
 		return (PoorMath.atan(PoorMath.exp(d)) - (Math.PI / 4)) * 2;
 	}
 	
-	private void mercatorRealToMap(double lon, double lat, int[] out){
+	private void mercatorToLocal(double lon, double lat, int[] out){
 		final double latmax = 85.0511287798066;
 		if(lat < -latmax) lat = -latmax;
 		if(lat > latmax) lat = latmax;
@@ -96,7 +96,7 @@ public class Map {
 		out[1] = (int)((y - this.segoffsety) * this.segment);
 	}
 	
-	private void mercatorMapToReal(int x, int y, double[] out){
+	private void mercatorToGlobal(int x, int y, double[] out){
 		double _x = (x / (double) this.segment) + this.segoffsetx;
 		double _y = (y / (double) this.segment) + this.segoffsety;;
 		int n = 1 << this.scale;
@@ -108,7 +108,7 @@ public class Map {
 		out[1] = lat;
 	}
 	
-	public synchronized void bilinearRealToMap(double x, double y, int[] out){
+	public synchronized void bilinearToLocal(double x, double y, int[] out){
 		bilinear(x, y, dout,
 			this.realax, this.realay, this.realbx, this.realby, this.realcx, this.realcy,
 			this.locax, this.locay, this.locbx, this.locby, this.loccx, this.loccy
@@ -117,7 +117,7 @@ public class Map {
 		out[1] = (int) dout[1];
 	}
 	
-	public void bilinearMapToReal(int x, int y, double[] out){
+	public void bilinearToGlobal(int x, int y, double[] out){
 		bilinear(x, y, out,
 			this.locax, this.locay, this.locbx, this.locby, this.loccx, this.loccy,
 			this.realax, this.realay, this.realbx, this.realby, this.realcx, this.realcy
