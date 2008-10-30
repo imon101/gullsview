@@ -761,10 +761,10 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 			ry = map.defaulty;
 		} else {
 			double[] rcoords = new double[2];
-			orgmap.mapToReal(this.canvas.getPositionX(), this.canvas.getPositionY(), rcoords);
+			orgmap.toGlobal(this.canvas.getPositionX(), this.canvas.getPositionY(), rcoords);
 			rx = rcoords[0];
 			ry = rcoords[1];
-			if(!this.map.insideMap(rx, ry)){
+			if(!this.map.insideGlobal(rx, ry)){
 				rx = map.defaultx;
 				ry = map.defaulty;
 			}
@@ -775,7 +775,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private void setPosition(double longitude, double latitude){
 		this.info("Position: " + latitude + ", " + longitude);
 		int[] mcoords = new int[2];
-		this.map.realToMap(longitude, latitude, mcoords);
+		this.map.toLocal(longitude, latitude, mcoords);
 		this.canvas.setPosition(mcoords[0], mcoords[1]);
 	}
 	
@@ -811,7 +811,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	}
 	
 	private void getPosition(double[] lonlat){
-		this.map.mapToReal(this.canvas.getPositionX(), this.canvas.getPositionY(), lonlat);
+		this.map.toGlobal(this.canvas.getPositionX(), this.canvas.getPositionY(), lonlat);
 	}
 	
 	private String[] getPositionStr(){
@@ -878,7 +878,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		for(int i = 0; i < count; i++){
 			lat = this.overlayList.getItemLatitude(i);
 			lon = this.overlayList.getItemLongitude(i);
-			this.map.realToMap(lat, lon, coords);
+			this.map.toLocal(lat, lon, coords);
 			x = coords[0];
 			y = coords[1];
 			name = this.overlayList.getItemName(i);
@@ -934,14 +934,14 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 			this.canvas.cancelTarget();
 		} else {
 			int[] coords = new int[2];
-			this.map.realToMap(this.targetLatitude, this.targetLongitude, coords);
+			this.map.toLocal(this.targetLatitude, this.targetLongitude, coords);
 			this.canvas.setTarget(coords[0], coords[1]);
 		}
 	}
 	
 	public void addTracePoint(){
 		double[] lonlat = new double[2];
-		this.map.mapToReal(this.canvas.getPositionX(), this.canvas.getPositionY(), lonlat);
+		this.map.toGlobal(this.canvas.getPositionX(), this.canvas.getPositionY(), lonlat);
 		this.overlayList.saveItem(-1, true, OverlayList.TYPE_PATH_CONT, "", this.formatCoord(lonlat[0]), this.formatCoord(lonlat[1]), lonlat[0], lonlat[1], 0, 0);
 		this.updateOverlay();
 	}
