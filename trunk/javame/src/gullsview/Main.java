@@ -15,6 +15,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private static final int ACTION_SCROLL = 2;
 	private static final int ACTION_HIDE_MESSAGE = 3;
 	private static final int ACTION_SWITCH_LOCATOR_STATE = 4;
+	private static final int ACTION_BACKLIGHT = 5;
 	
 	private static final int POINT_PATH_START = 1;
 	private static final int POINT_PATH_CONT = 2;
@@ -34,6 +35,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	public boolean flagJsr179; // LAPI
 	public boolean flagJsr184; // M3G
 	public boolean flagBtsLocator;
+	public boolean flagNokiaBacklight;
 	
 	private Display display;
 	private Hashtable resources;
@@ -57,6 +59,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private double loadedLongitude;
 	private boolean loadedLandscape;
 	private boolean loadedFullscreen;
+	private boolean backlight;
 	
 	private SplashScreen splash;
 	private Form aboutForm;
@@ -88,6 +91,8 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private Command startLocatorCommand;
 	private Command stopLocatorCommand;
 	private Command preferenceCommand;
+	private Command startBacklightCommand;
+	private Command stopBacklightCommand;
 	
 	public void startApp(){
 		this.timer = new Timer();
@@ -98,6 +103,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				this.flagJsr179 = this.classExists("javax.microedition.location.Location") && this.classExists("gullsview.Jsr179Locator");
 				this.flagJsr184 = this.classExists("javax.microedition.m3g.Graphics3D") && this.classExists("gullsview.M3gMapCanvas");
 				this.flagBtsLocator = this.classExists("gullsview.BtsLocator");
+				this.flagNokiaBacklight = this.classExists("com.nokia.mid.ui.DirectGraphics");
 				
 				try {
 					boolean loaded = this.recordStoreLoad(this, "preferences");
@@ -119,18 +125,20 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				this.backCommand = new Command(this.getResource("back"), Command.BACK, 1);
 				
 				this.mapSelectCommand = new Command(this.getResource("select-map"), Command.SCREEN, 1);
-				this.startLocatorCommand = new Command(this.getResource("start-locator"), Command.SCREEN, 2);
-				this.stopLocatorCommand = new Command(this.getResource("stop-locator"), Command.SCREEN, 2);
-				this.overlayListCommand = new Command(this.getResource("overlay"), Command.SCREEN, 3);
-				this.pathStartCommand = new Command(this.getResource("path-start"), Command.SCREEN, 4);
-				this.pathContCommand = new Command(this.getResource("path-cont"), Command.SCREEN, 5);
-				this.poiCommand = new Command(this.getResource("poi"), Command.SCREEN, 6);
-				this.cancelTargetCommand = new Command(this.getResource("cancel-target"), Command.SCREEN, 7);
-				this.switchToMidpCanvasCommand = new Command(this.getResource("switch-to-midp-canvas"), Command.SCREEN, 8);
-				this.switchToM3gCanvasCommand = new Command(this.getResource("switch-to-m3g-canvas"), Command.SCREEN, 9);
-				this.preferenceCommand = new Command(this.getResource("preferences"), Command.SCREEN, 10);
-				this.aboutCommand = new Command(this.getResource("about"), Command.SCREEN, 11);
-				this.pauseCommand = new Command(this.getResource("pause"), Command.SCREEN, 12);
+				this.startBacklightCommand = new Command(this.getResource("start-backlight"), Command.SCREEN, 2);
+				this.stopBacklightCommand = new Command(this.getResource("stop-backlight"), Command.SCREEN, 2);
+				this.startLocatorCommand = new Command(this.getResource("start-locator"), Command.SCREEN, 3);
+				this.stopLocatorCommand = new Command(this.getResource("stop-locator"), Command.SCREEN, 3);
+				this.overlayListCommand = new Command(this.getResource("overlay"), Command.SCREEN, 4);
+				this.pathStartCommand = new Command(this.getResource("path-start"), Command.SCREEN, 5);
+				this.pathContCommand = new Command(this.getResource("path-cont"), Command.SCREEN, 6);
+				this.poiCommand = new Command(this.getResource("poi"), Command.SCREEN, 7);
+				this.cancelTargetCommand = new Command(this.getResource("cancel-target"), Command.SCREEN, 8);
+				this.switchToMidpCanvasCommand = new Command(this.getResource("switch-to-midp-canvas"), Command.SCREEN, 9);
+				this.switchToM3gCanvasCommand = new Command(this.getResource("switch-to-m3g-canvas"), Command.SCREEN, 10);
+				this.preferenceCommand = new Command(this.getResource("preferences"), Command.SCREEN, 11);
+				this.aboutCommand = new Command(this.getResource("about"), Command.SCREEN, 12);
+				this.pauseCommand = new Command(this.getResource("pause"), Command.SCREEN, 13);
 				
 				this.editCommand = new Command(this.getResource("edit"), Command.ITEM, 1);
 				this.moveToCommand = new Command(this.getResource("move-to"), Command.ITEM, 2);
@@ -220,6 +228,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		} else {
 			this.show(this.canvas);
 		}
+		if(this.backlight) this.startBacklight();
 	}
 	
 	private void initCanvas(int type){
@@ -232,9 +241,11 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		this.canvas.init(this);
 		this.canvas.addCommand(this.exitCommand);
 		this.canvas.addCommand(this.overlayListCommand);
+		/*
 		this.canvas.addCommand(this.pathStartCommand);
 		this.canvas.addCommand(this.pathContCommand);
 		this.canvas.addCommand(this.poiCommand);
+		*/
 		this.canvas.addCommand(this.cancelTargetCommand);
 		this.canvas.addCommand(this.aboutCommand);
 		this.canvas.addCommand(this.pauseCommand);
@@ -245,6 +256,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 			if(this.flagJsr184) this.canvas.addCommand(this.switchToM3gCanvasCommand);
 		}
 		if(!this.preferenceForm.isEmpty()) this.canvas.addCommand(this.preferenceCommand);
+		if(this.flagNokiaBacklight) this.updateBacklightCommands();
 		this.canvas.setCommandListener(this);
 		this.canvasType = type;
 	}
@@ -285,10 +297,13 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	
 	public void load(DataInput in) throws IOException {
 		this.canvasType = in.readInt();
+		if((this.canvasType == CANVAS_M3G) && !this.flagJsr184) this.canvasType = CANVAS_MIDP;
 		this.targetLatitude = in.readDouble();
 		this.targetLongitude = in.readDouble();
 		this.fileSystemParam = in.readUTF();
 		this.locatorType = in.readInt();
+		if((this.locatorType == LOCATOR_JSR179) && !this.flagJsr179) this.locatorType = LOCATOR_NONE;
+		if((this.locatorType == LOCATOR_JSR082) && !this.flagJsr082) this.locatorType = LOCATOR_NONE;
 		this.locatorParam = in.readUTF();
 		this.locatorStarted = in.readBoolean();
 		this.loadedMapName = in.readUTF();
@@ -451,6 +466,10 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 			this.schedule(ACTION_SWITCH_LOCATOR_STATE, Boolean.FALSE);
 		} else if(cmd == this.preferenceCommand){
 			this.show(this.preferenceForm);
+		} else if(cmd == this.startBacklightCommand){
+			this.startBacklight();
+		} else if(cmd == this.stopBacklightCommand){
+			this.stopBacklight();
 		}
 	}
 	
@@ -575,6 +594,13 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		case ACTION_SWITCH_LOCATOR_STATE:
 			this.switchLocatorState(((Boolean) data).booleanValue());
 			break;
+		case ACTION_BACKLIGHT:
+			if(!this.backlight){
+				task.cancel();
+				break;
+			}
+			this.updateBacklight();
+			break;
 		}
 	}
 	
@@ -640,9 +666,9 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 			this.setResource("locator-bts", "Podle GSM vysílačů");
 			this.setResource("locator-param", "Bluetooth adresa GPS");
 			this.setResource("filesystem-param", "Cesta k adresáři s daty");
-			this.setResource("", "");
-			this.setResource("", "");
-			this.setResource("", "");
+			this.setResource("start-backlight", "Zapnout trvalé podsvícení");
+			this.setResource("stop-backlight", "Vypnout trvalé podsvícení");
+			this.setResource("backlight-warning", "Podsvícení žere baterku!!!");
 			this.setResource("", "");
 		} else {
 			this.setResource("exit", "Exit");
@@ -693,6 +719,9 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 			this.setResource("locator-bts", "Using BTS");
 			this.setResource("locator-param", "GPS Bluetooth address");
 			this.setResource("filesystem-param", "Path to data directory");
+			this.setResource("start-backlight", "Start backlight");
+			this.setResource("stop-backlight", "Stop backlight");
+			this.setResource("backlight-warning", "Backlight eats up battery!!!");
 		}
 		// this.setResource("", "");
 	}
@@ -1078,6 +1107,28 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 			this.warning("Error switching locator state", e);
 			this.setMessage(this.getResource("locator-error"), 3000);
 		}
+	}
+	
+	private void startBacklight(){
+		this.backlight = true;
+		this.schedule(ACTION_BACKLIGHT, null, 5000, 5000);
+		this.updateBacklightCommands();
+		this.setMessage(this.getResource("backlight-warning"), 5000);
+	}
+	
+	private void stopBacklight(){
+		this.backlight = false;
+		this.updateBacklightCommands();
+	}
+	
+	private void updateBacklight(){
+		com.nokia.mid.ui.DeviceControl.setLights(0, 100);
+	}
+	
+	private void updateBacklightCommands(){
+		this.canvas.removeCommand(this.startBacklightCommand);
+		this.canvas.removeCommand(this.stopBacklightCommand);
+		this.canvas.addCommand(this.backlight ? this.stopBacklightCommand : this.startBacklightCommand);
 	}
 }
 
