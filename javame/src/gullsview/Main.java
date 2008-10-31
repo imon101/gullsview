@@ -234,7 +234,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private void initCanvas(int type){
 		if(this.canvas != null) this.canvas.dispose();
 		this.canvas = null;
-		this.show(null);
+		// this.show(null);
 		if(!this.flagJsr184) type = CANVAS_MIDP;
 		String className = (type == CANVAS_M3G) ? "gullsview.M3gMapCanvas" : "gullsview.MidpMapCanvas";
 		this.canvas = (MapCanvas) this.newInstance(className);
@@ -599,7 +599,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 				task.cancel();
 				break;
 			}
-			this.updateBacklight();
+			this.updateBacklight(true);
 			break;
 		}
 	}
@@ -1114,15 +1114,17 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		this.schedule(ACTION_BACKLIGHT, null, 5000, 5000);
 		this.updateBacklightCommands();
 		this.setMessage(this.getResource("backlight-warning"), 5000);
+		this.updateBacklight(true);
 	}
 	
 	private void stopBacklight(){
 		this.backlight = false;
 		this.updateBacklightCommands();
+		this.updateBacklight(false);
 	}
 	
-	private void updateBacklight(){
-		com.nokia.mid.ui.DeviceControl.setLights(0, 100);
+	private void updateBacklight(boolean on){
+		com.nokia.mid.ui.DeviceControl.setLights(0, on ? 100 : 0);
 	}
 	
 	private void updateBacklightCommands(){
