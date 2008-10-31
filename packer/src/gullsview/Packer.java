@@ -91,10 +91,12 @@ public class Packer {
 			}
 		}
 		
+		String name = this.console.inputString("output-name", null, "GullsView");
+		
 		this.console.printSeparator();
 		this.console.printRes("start");
 		this.console.printSeparator();
-		String outputPath = this.filterJars(path, flagFc, flagBt, flagLapi, flagM3g);
+		String outputPath = this.filterJars(path, name, flagFc, flagBt, flagLapi, flagM3g);
 		int externalDataCount = this.pushMapsData(new FileDumper(){
 			private FileOutputStream fis;
 			public void next(String path) throws IOException {
@@ -128,9 +130,9 @@ public class Packer {
 		this.console.close();
 	}
 	
-	private String filterJars(String path, boolean fc, boolean bt, boolean lapi, boolean m3g) throws IOException {
+	private String filterJars(String path, String name, boolean fc, boolean bt, boolean lapi, boolean m3g) throws IOException {
 		List<String> constraints = new ArrayList<String>();
-		String pathPrefix = path + "/GullsView";
+		String pathPrefix = path + "/" + name;
 		String pathSuffix = "";
 		if(fc){
 			pathSuffix += "_FC";
@@ -151,12 +153,12 @@ public class Packer {
 		String[] sconstraints = new String[constraints.size()];
 		constraints.toArray(sconstraints);
 		this.console.print(this.console.r("writing-output-start") + ": " + pathPrefix + pathSuffix + ".{jar|jad}");
-		this.filterJar(pathPrefix + pathSuffix, sconstraints, (pathSuffix.length() > 0) ? pathSuffix.substring(1) : "none");
+		this.filterJar(path, name + pathSuffix, sconstraints, (pathSuffix.length() > 0) ? pathSuffix.substring(1) : "none");
 		this.console.print(this.console.r("writing-output-finish") + ": " + pathPrefix + pathSuffix + ".{jar|jad}");
 		return pathPrefix + pathSuffix;
 	}
 	
-	private void filterJar(String pathPrefix, final String[] constraints, final String extensions) throws IOException {
+	private void filterJar(String path, String name, final String[] constraints, final String extensions) throws IOException {
 		JarFilter.Filter filter = new JarFilter.Filter(){
 			public boolean processEntry(String name){
 				Packer.this.console.print(Packer.this.console.r("processing-entry") + ": " + name);
@@ -181,14 +183,14 @@ public class Packer {
 			}
 		};
 		InputStream in = (this.getClass()).getResourceAsStream("/GullsView.mjar");
-		String jarFileName = pathPrefix + ".jar";
+		String jarFileName = path + "/" + name + ".jar";
 		OutputStream out = new FileOutputStream(jarFileName);
 		JarFilter jf = new JarFilter(in, out, filter);
 		java.util.Map<String, String> jad = jf.run();
 		File jar = new File(jarFileName);
-		jad.put("MIDlet-Jar-URL", jarFileName);
+		jad.put("MIDlet-Jar-URL", name + ".jar");
 		jad.put("MIDlet-Jar-Size", String.valueOf(jar.length()));
-		FileOutputStream fos = new FileOutputStream(pathPrefix + ".jad");
+		FileOutputStream fos = new FileOutputStream(path + "/" + name + ".jad");
 		jf.writeManifest(jad, fos);
 		fos.flush();
 		fos.close();

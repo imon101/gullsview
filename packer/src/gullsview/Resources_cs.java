@@ -26,6 +26,7 @@ public class Resources_cs extends ListResourceBundle {
 		{"enable-lapi", "Zapnout podporu JSR 179 - Location API? (na zařízeních bez tohoto rozšíření API však aplikace nebude fungovat)"},
 		{"enable-m3g", "Zapnout podporu JSR 184 - Mobile 3D Graphics? (na zařízeních bez tohoto rozšíření API však aplikace nebude fungovat)"},
 		{"output-path", "Zadejte cestu k adresáři pro uložení výsledného midlet suite (mobilní aplikace - JAR+JAD)"},
+		{"output-name", "Zadejte název výsledného midlet suite (mobilní aplikace - JAR+JAD)"},
 		{"start", "Začínám generovat midlet suite"},
 		{"finish", "Hotovo"},
 		{"accept-to-close", "Pro ukončení aplikace potvrďte vstup"},

@@ -4,7 +4,7 @@ EMULATOR = $(WTK)/bin/emulator
 CLASSPATH = $(WTK)/lib/cldcapi11.jar:$(WTK)/lib/midpapi20.jar:$(WTK)/lib/jsr082.jar:$(WTK)/lib/jsr179.jar:$(WTK)/lib/jsr75.jar:$(WTK)/lib/jsr184.jar
 
 PROJECT = GullsView
-SOURCES = gullsview/*.java
+SOURCES = gullsview/*.java com/nokia/mid/ui/*.java
 
 
 all: build

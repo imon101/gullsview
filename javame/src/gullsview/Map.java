@@ -144,7 +144,7 @@ public class Map {
 	}
 	
 	public String toString(){
-		return this.title + ((vendor.length() > 0) ? " (" + this.vendor + ")" : "");
+		return this.title + ":" + this.scale + ((vendor.length() > 0) ? " (" + this.vendor + ")" : "");
 	}
 }
 
