@@ -58,6 +58,7 @@ public class M3gMapCanvas extends MapCanvas {
 	}
 	
 	public void dispose(){
+		this.cache.clear();
 	}
 	
 	public void setSegment(int segment, int xcount, int ycount){
