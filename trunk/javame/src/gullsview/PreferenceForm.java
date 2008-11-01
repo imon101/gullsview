@@ -69,7 +69,8 @@ public class PreferenceForm extends Form {
 		this.fileSystemParamField = new TextField(this.main.getResource("filesystem-param"), fileSystemParam != null ? fileSystemParam : "", 100, TextField.ANY);
 		this.append(this.fileSystemParamField);
 		this.fileSystemConfigButton = new StringItem(this.main.getResource("filesystem-config"), null, Item.BUTTON);
-		this.fileSystemConfigButton.addCommand(new Command(this.main.getResource("filesystem-config"), Command.ITEM, 0));
+		this.fileSystemConfigCommand = new Command(this.main.getResource("filesystem-config"), Command.ITEM, 0);
+		this.fileSystemConfigButton.addCommand(this.fileSystemConfigCommand);
 		this.fileSystemConfigButton.setItemCommandListener(this.main);
 		this.append(this.fileSystemConfigButton);
 		this.empty = false;
