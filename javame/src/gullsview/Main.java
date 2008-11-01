@@ -199,6 +199,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				
 				if(this.flagJsr75FC){
 					this.fileSystem = (FileSystem) this.newInstance("gullsview.FileSystemImpl");
+					this.fileSystem.init(this);
 					this.fileSystem.setParameter(this.fileSystemParam);
 				}
 				
@@ -475,7 +476,11 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	
 	public void commandAction(Command cmd, Item item){
 		if(cmd == this.preferenceForm.fileSystemConfigCommand){
-System.out.println("gotcha");
+			try {
+				this.fileSystem.configure();
+			} catch (Exception e){
+				this.error("Cannot configure file system", e);
+			}
 		}
 	}
 	
@@ -506,7 +511,7 @@ System.out.println("gotcha");
 		}
 	}
 	
-	private void alert(String message){
+	public void alert(String message){
 		Alert alert = new Alert(this.getResource("alert"), message, null, AlertType.ERROR);
 		this.show(alert);
 	}
@@ -546,7 +551,7 @@ System.out.println("gotcha");
 		System.out.println("INFO: " + message);
 	}
 	
-	private void show(Displayable disp){
+	public void show(Displayable disp){
 		this.display.setCurrent(disp);
 	}
 	
@@ -673,9 +678,11 @@ System.out.println("gotcha");
 			this.setResource("locator-param", "Bluetooth adresa GPS");
 			this.setResource("filesystem-param", "Cesta k adresáři s daty");
 			this.setResource("filesystem-config", "Konfigurovat adresář s daty");
+			this.setResource("filesystem-alert", "Název adresáře musí končit příponou \"_DATA\"");
 			this.setResource("start-backlight", "Zapnout trvalé podsvícení");
 			this.setResource("stop-backlight", "Vypnout trvalé podsvícení");
 			this.setResource("backlight-warning", "Podsvícení žere baterku!!!");
+			this.setResource("level-up", "o úroveň výš");
 			this.setResource("", "");
 		} else {
 			this.setResource("exit", "Exit");
@@ -726,10 +733,12 @@ System.out.println("gotcha");
 			this.setResource("locator-bts", "Using BTS");
 			this.setResource("locator-param", "GPS Bluetooth address");
 			this.setResource("filesystem-param", "Path to data directory");
-			this.setResource("filesystem-config", "Configure data directorz");
+			this.setResource("filesystem-config", "Configure data directory");
+			this.setResource("filesystem-alert", "Directory name must ends with suffix \"_DATA\"");
 			this.setResource("start-backlight", "Start backlight");
 			this.setResource("stop-backlight", "Stop backlight");
 			this.setResource("backlight-warning", "Backlight eats up battery!!!");
+			this.setResource("level-up", "up one level");
 		}
 		// this.setResource("", "");
 	}
@@ -746,7 +755,7 @@ System.out.println("gotcha");
 			image = Image.createImage(is);
 			is.close();
 		} catch (Exception e){
-			this.error(null, e);
+			this.error("Cannot get image", e);
 		}
 		return image;
 	}
@@ -1139,6 +1148,15 @@ System.out.println("gotcha");
 		this.canvas.removeCommand(this.startBacklightCommand);
 		this.canvas.removeCommand(this.stopBacklightCommand);
 		this.canvas.addCommand(this.backlight ? this.stopBacklightCommand : this.startBacklightCommand);
+	}
+	
+	public void call(Runnable runnable){
+		this.display.callSerially(runnable);
+	}
+	
+	public void fileSystemConfigured(String fileSystemParam){
+		if(fileSystemParam != null) this.preferenceForm.setFileSystemParam(fileSystemParam);
+		this.show(this.preferenceForm);
 	}
 }
 
