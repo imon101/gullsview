@@ -74,7 +74,7 @@ double tlon = Double.NaN;
 					int lac = dis.readInt();
 					if((cellid == this.cellid) && (lac == this.lac)){
 						//this.main.locatorPositionUpdated(lat, lon);
-this.main.locatorPositionUpdated(lon, lat);
+this.main.locatorPositionUpdated(lat, lon);
 						return;
 					}
 if((cellid == this.cellid) && ((lac & 0xff00) == (this.lac & 0xff00))){
@@ -84,7 +84,7 @@ tlon = lon;
 				}
 			}
 if(!Double.isNaN(tlat) && !Double.isNaN(tlon)){
-this.main.locatorPositionUpdated(tlon, tlat);
+this.main.locatorPositionUpdated(tlat, tlon);
 return;
 }
 			this.main.locatorStatusUpdated("out-of-service");

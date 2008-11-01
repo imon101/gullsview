@@ -11,11 +11,11 @@ public class Map {
 	public int scale;
 	public int segment;
 	public int xcount, ycount;
-	public double defaultx, defaulty;
+	public double deflat, deflon;
 	public boolean mercator;
 	public int segoffsetx, segoffsety;
-	public double locax, locay, locbx, locby, loccx, loccy;
-	public double realax, realay, realbx, realby, realcx, realcy;
+	public double bax, bay, bbx, bby, bcx, bcy;
+	public double balat, balon, bblat, bblon, bclat, bclon;
 	
 	public String dataDir;
 	public String dataFormat;
@@ -30,23 +30,23 @@ public class Map {
 		out.writeInt(this.segment);
 		out.writeInt(this.xcount);
 		out.writeInt(this.ycount);
-		out.writeDouble(this.defaultx);
-		out.writeDouble(this.defaulty);
+		out.writeDouble(this.deflat);
+		out.writeDouble(this.deflon);
 		out.writeBoolean(this.mercator);
 		out.writeInt(this.segoffsetx);
 		out.writeInt(this.segoffsety);
-		out.writeDouble(this.locax);
-		out.writeDouble(this.locay);
-		out.writeDouble(this.locbx);
-		out.writeDouble(this.locby);
-		out.writeDouble(this.loccx);
-		out.writeDouble(this.loccy);
-		out.writeDouble(this.realax);
-		out.writeDouble(this.realay);
-		out.writeDouble(this.realbx);
-		out.writeDouble(this.realby);
-		out.writeDouble(this.realcx);
-		out.writeDouble(this.realcy);
+		out.writeDouble(this.bax);
+		out.writeDouble(this.bay);
+		out.writeDouble(this.bbx);
+		out.writeDouble(this.bby);
+		out.writeDouble(this.bcx);
+		out.writeDouble(this.bcy);
+		out.writeDouble(this.balat);
+		out.writeDouble(this.balon);
+		out.writeDouble(this.bblat);
+		out.writeDouble(this.bblon);
+		out.writeDouble(this.bclat);
+		out.writeDouble(this.bclon);
 	}
 }
 
