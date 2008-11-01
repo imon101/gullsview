@@ -144,7 +144,7 @@ public class Packer {
 		return pathPrefix + pathSuffix;
 	}
 	
-	private void filterJar(String path, String name, final String extensions) throws IOException {
+	private void filterJar(String path, final String name, final String extensions) throws IOException {
 		JarFilter.Filter filter = new JarFilter.Filter(){
 			public boolean processEntry(String name){
 				Packer.this.console.print(Packer.this.console.r("processing-entry") + ": " + name);
@@ -156,6 +156,7 @@ public class Packer {
 				String descId = "MIDlet-Description";
 				String desc = values.get(descId);
 				if(desc != null) values.put(descId, desc + " (extensions: " + extensions + ")");
+				values.put("MIDlet-Name", name);
 			}
 			
 			public void addEntries(FileDumper fd) throws IOException {

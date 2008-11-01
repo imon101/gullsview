@@ -1,0 +1,46 @@
+
+.SET TITLE Gull's\ View
+
++PAGE
++LAYOUT
++WINDOW
+
+.TITLE;$(TITLE)
+
++TEXT
+
+.HEADER 1;Popis
+
+
+.HEADER 1;License
+
+
+Copyleft 2008 Tomáš Darmovzal
+
+
+.HEADER 1;Download
+
+
+.HEADER 1;Instalace a spuštění
+
+
+-TEXT
+
+-WINDOW
+-LAYOUT
+
++LAYOUT
++WINDOW
++TEXT
+Autor:
+.STRONG;Tomáš Darmovzal
+tomas dot darmovzal at gmail
+
+Generováno s použitím DocumentPreProcessor (dpp) -
+.REF index.dpp;DPP source
+-TEXT
+-WINDOW
+-LAYOUT
+-PAGE
+
+

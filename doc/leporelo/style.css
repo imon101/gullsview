@@ -1,0 +1,99 @@
+body { font-size: 12px; font-family: Arial, Verdana, sans-serif; background: #ffffff; padding: 30px 0px; color: #444; line-height: 120%; }
+a { color: #444; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/*
+.form { width: 800px; }
+.form-inner { padding: 0px 10px 0px 0px; background: url(images/shade_r.png) right repeat-y; }
+.form-inner-2 { border: 1px solid #999; background: #f8f8f8; text-align: left; }
+.form-bottom { background: url(images/shade_b.png) bottom repeat-x; height: 10px; }
+.form-corner-lb { float: left; width: 10px; height: 10px; background: url(images/shade_lb.png) left top no-repeat; }
+.form-corner-rb { float: right; width: 10px; height: 10px; background: url(images/shade_rb.png) left top no-repeat; }
+
+.window { border: 1px solid #999; background: #ffffff; }
+.window-top { background: url(images/shade_b.png) top repeat-x; }
+.window-inner { background: url(images/shade_r.png) left repeat-y; }
+.window-corner-lt { width: 10px; height: 10px; background: url(images/shade_n_lt.png) left top no-repeat; }
+.window-content { padding: 5px 20px 10px 20px; text-align: justify; }
+*/
+
+/*
+.window-stripe { }
+.window-stripe-inner { padding: 5px 20px; border: solid #999; border-width: 1px 0px; background: #ddd; font-weight: bold; }
+.window-stripe-bottom { background: url(images/shade_b.png) top repeat-x; }
+*/
+
+.window-text { padding: 5px 20px 10px 20px; text-align: justify; }
+
+.gap { margin: 5px; }
+
+.title { }
+.title-main { font-size: 125%; margin-bottom: 5px; }
+.title-items { }
+.title-item { display: inline; }
+
+.layout {}
+.layout-left { float: left; width: 30%; }
+.layout-left-2 { padding: 5px; }
+.layout-right { float: right; width: 70%; }
+.layout-right-2 { padding: 5px 5px 5px 0px; }
+.layout-clear { clear: both; }
+
+.list { padding: 0px 0px 0px 20px; margin: 0px; }
+.list-item { padding: 0px; margin: 0px; list-style: square outside none; display: list-item; }
+
+.linebreak {}
+.vspace { margin: 0px 0px 15px 0px; }
+
+.frame { width: 800px; text-align: left; }
+.frame-rshade { background: url(images/shade_r.png) right center repeat-y; }
+.frame-bshade { background: url(images/shade_b.png) center bottom repeat-x; }
+.frame-rtshade { background: url(images/shade_rt.png) right top no-repeat; }
+.frame-lbshade { background: url(images/shade_lb.png) left bottom no-repeat; }
+.frame-rbshade { background: url(images/shade_rb.png) right bottom no-repeat; }
+.frame-gap { padding: 0px 10px 10px 0px; }
+.frame-content { border: 1px solid #999; background: #f8f8f8; }
+
+.window { border: 1px solid #999; background: #fff; }
+.window-tshade { background: url(images/shade_b.png) center top repeat-x; }
+.window-lshade { background: url(images/shade_r.png) left center repeat-y; }
+.window-ltshade{ background: url(images/shade_n_lt.png) left top no-repeat; }
+.window-content { padding: 10px 0px 0px 0px; }
+
+.window-stripe {}
+.window-stripe-bshade { background: url(images/shade_b.png) center bottom repeat-x; }
+.window-stripe-lbshade { background: url(images/shade_n_lt.png) left bottom no-repeat; }
+.window-stripe-content { padding: 0px 0px 10px 0px; }
+.window-stripe-content-2 { border: solid #999; border-width: 1px 0px; background: #ddd; }
+
+.title { padding: 5px 20px; font-weight: bold; font-size: 120%; }
+
+.layout { margin: 5px; }
+.layout-cell-first { }
+.layout-cell { margin: 0px 0px 0px 5px; }
+.layout-gap { margin: 5px; }
+
+.image { float: left; margin: 0px 5px 0px 0px; }
+.image-rshade { background: url(images/shade_r.png) right center repeat-y; }
+.image-bshade { background: url(images/shade_b.png) center bottom repeat-x; }
+.image-rtshade { background: url(images/shade_rt.png) right top no-repeat; }
+.image-lbshade { background: url(images/shade_lb.png) left bottom no-repeat; }
+.image-rbshade { background: url(images/shade_rb.png) right bottom no-repeat; }
+.image-gap { padding: 0px 10px 10px 0px; }
+.image-content { border: 1px solid #999; background: #f8f8f8; }
+.image-img { border: 1px solid #999; margin: 5px 5px 0px 5px; }
+.image-text { margin: 5px; text-align: center; font-style: italic; }
+
+.ref { color: #444; text-decoration: underline; }
+.ref:hover { text-decoration: none; }
+
+.clear { clear: both; }
+
+.code { padding: 5px; border: 1px solid #999; background: #ddd; white-space: pre; overflow: auto; font-family: monospace; }
+
+.strong { font-weight: bold; }
+
+.header-1 { margin: 0px 0px 10px 0px; font-weight: bold; font-size: 120%; clear: both; }
+.header-2 { margin: 0px 0px 5px 0px; font-weight: bold; }
+
+
