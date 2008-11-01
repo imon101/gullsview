@@ -10,7 +10,7 @@ import javax.microedition.rms.*;
 
 
 
-public class Main extends MIDlet implements CommandListener, Persistable {
+public class Main extends MIDlet implements CommandListener, ItemCommandListener, Persistable {
 	private static final int ACTION_HIDE_SPLASH = 1;
 	private static final int ACTION_SCROLL = 2;
 	private static final int ACTION_HIDE_MESSAGE = 3;
@@ -473,6 +473,12 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		}
 	}
 	
+	public void commandAction(Command cmd, Item item){
+		if(cmd == this.preferenceForm.fileSystemConfigCommand){
+System.out.println("gotcha");
+		}
+	}
+	
 	private void changeCanvas(int type){
 		int cx = this.canvas.getPositionX();
 		int cy = this.canvas.getPositionY();
@@ -666,6 +672,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 			this.setResource("locator-bts", "Podle GSM vysílačů");
 			this.setResource("locator-param", "Bluetooth adresa GPS");
 			this.setResource("filesystem-param", "Cesta k adresáři s daty");
+			this.setResource("filesystem-config", "Konfigurovat adresář s daty");
 			this.setResource("start-backlight", "Zapnout trvalé podsvícení");
 			this.setResource("stop-backlight", "Vypnout trvalé podsvícení");
 			this.setResource("backlight-warning", "Podsvícení žere baterku!!!");
@@ -719,6 +726,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 			this.setResource("locator-bts", "Using BTS");
 			this.setResource("locator-param", "GPS Bluetooth address");
 			this.setResource("filesystem-param", "Path to data directory");
+			this.setResource("filesystem-config", "Configure data directorz");
 			this.setResource("start-backlight", "Start backlight");
 			this.setResource("stop-backlight", "Stop backlight");
 			this.setResource("backlight-warning", "Backlight eats up battery!!!");
@@ -784,28 +792,28 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		this.map = this.mapList.getMap(mapid);
 		this.canvas.setSegment(this.map.segment, this.map.xcount, this.map.ycount);
 		this.canvas.setMap(mapid);
-		double rx, ry;
+		double lat, lon;
 		if(orgmap == null){
-			rx = map.defaultx;
-			ry = map.defaulty;
+			lat = map.deflat;
+			lon = map.deflon;
 		} else {
-			double[] rcoords = new double[2];
-			orgmap.toGlobal(this.canvas.getPositionX(), this.canvas.getPositionY(), rcoords);
-			rx = rcoords[0];
-			ry = rcoords[1];
-			if(!this.map.insideGlobal(rx, ry)){
-				rx = map.defaultx;
-				ry = map.defaulty;
+			double[] latlon = new double[2];
+			orgmap.toGlobal(this.canvas.getPositionX(), this.canvas.getPositionY(), latlon);
+			lat = latlon[0];
+			lon = latlon[1];
+			if(!this.map.insideGlobal(lat, lon)){
+				lat = map.deflat;
+				lon = map.deflon;
 			}
 		}
-		this.setPosition(rx, ry);
+		this.setPosition(lat, lon);
 	}
 	
-	private void setPosition(double longitude, double latitude){
-		this.info("Position: " + latitude + ", " + longitude);
-		int[] mcoords = new int[2];
-		this.map.toLocal(longitude, latitude, mcoords);
-		this.canvas.setPosition(mcoords[0], mcoords[1]);
+	private void setPosition(double lat, double lon){
+		this.info("Position: " + lat+ ", " + lon);
+		int[] xy = new int[2];
+		this.map.toLocal(lat, lon, xy);
+		this.canvas.setPosition(xy[0], xy[1]);
 	}
 	
 	public Image getSegment(int mapid, int x, int y){
@@ -839,8 +847,8 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		this.scrollTask = this.schedule(this.ACTION_SCROLL, null, 10, 40);
 	}
 	
-	private void getPosition(double[] lonlat){
-		this.map.toGlobal(this.canvas.getPositionX(), this.canvas.getPositionY(), lonlat);
+	private void getPosition(double[] latlon){
+		this.map.toGlobal(this.canvas.getPositionX(), this.canvas.getPositionY(), latlon);
 	}
 	
 	private String[] getPositionStr(){
@@ -901,15 +909,15 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		int prevx = 0;
 		int prevy = 0;
 		boolean started = false;
-		int[] coords = new int[2];
+		int[] xy = new int[2];
 		int x, y;
 		int count = this.overlayList.getItemCount();
 		for(int i = 0; i < count; i++){
 			lat = this.overlayList.getItemLatitude(i);
 			lon = this.overlayList.getItemLongitude(i);
-			this.map.toLocal(lat, lon, coords);
-			x = coords[0];
-			y = coords[1];
+			this.map.toLocal(lat, lon, xy);
+			x = xy[0];
+			y = xy[1];
 			name = this.overlayList.getItemName(i);
 			if((name != null) && ((name.trim()).length() == 0)) name = null;
 			switch(this.overlayList.getItemType(i)){
@@ -962,16 +970,16 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 		if(Double.isNaN(this.targetLatitude) || Double.isNaN(this.targetLongitude)){
 			this.canvas.cancelTarget();
 		} else {
-			int[] coords = new int[2];
-			this.map.toLocal(this.targetLatitude, this.targetLongitude, coords);
-			this.canvas.setTarget(coords[0], coords[1]);
+			int[] xy = new int[2];
+			this.map.toLocal(this.targetLatitude, this.targetLongitude, xy);
+			this.canvas.setTarget(xy[0], xy[1]);
 		}
 	}
 	
 	public void addTracePoint(){
-		double[] lonlat = new double[2];
-		this.map.toGlobal(this.canvas.getPositionX(), this.canvas.getPositionY(), lonlat);
-		this.overlayList.saveItem(-1, true, OverlayList.TYPE_PATH_CONT, "", this.formatCoord(lonlat[0]), this.formatCoord(lonlat[1]), lonlat[0], lonlat[1], 0, 0);
+		double[] latlon = new double[2];
+		this.map.toGlobal(this.canvas.getPositionX(), this.canvas.getPositionY(), latlon);
+		this.overlayList.saveItem(-1, true, OverlayList.TYPE_PATH_CONT, "", this.formatCoord(latlon[0]), this.formatCoord(latlon[1]), latlon[0], latlon[1], 0, 0);
 		this.updateOverlay();
 	}
 	

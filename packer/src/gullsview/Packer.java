@@ -210,21 +210,21 @@ public class Packer {
 			map.segoffsetx = this.inputInt(index, "segoffsetx", 0);
 			map.segoffsety = this.inputInt(index, "segoffsety", 0);
 		} else {
-			map.locax = 0;
-			map.locay = 0;
-			map.locbx = map.segment * map.xcount;
-			map.locby = 0;
-			map.loccx = 0;
-			map.loccy = map.segment * map.ycount;
-			map.realay = this.inputCoord(index, "lt-lat", 0);
-			map.realax = this.inputCoord(index, "lt-lon", 0);
-			map.realby = this.inputCoord(index, "rt-lat", 0);
-			map.realbx = this.inputCoord(index, "rt-lon", 0);
-			map.realcy = this.inputCoord(index, "lb-lat", 0);
-			map.realcx = this.inputCoord(index, "lb-lon", 0);
-			map.defaulty = this.inputCoord(index, "lat", (map.realay + map.realcy) / 2);
-			map.defaultx = this.inputCoord(index, "lon", (map.realax + map.realbx) / 2);
+			map.bax = 0;
+			map.bay = 0;
+			map.bbx = map.segment * map.xcount;
+			map.bby = 0;
+			map.bcx = 0;
+			map.bcy = map.segment * map.ycount;
+			map.balat = this.inputCoord(index, "lt-lat", 0);
+			map.balon = this.inputCoord(index, "lt-lon", 0);
+			map.bblat = this.inputCoord(index, "rt-lat", 0);
+			map.bblon = this.inputCoord(index, "rt-lon", 0);
+			map.bclat = this.inputCoord(index, "lb-lat", 0);
+			map.bclon = this.inputCoord(index, "lb-lon", 0);
 		}
+		map.deflat = this.inputCoord(index, "lat", (map.balat + map.bclat) / 2);
+		map.deflon = this.inputCoord(index, "lon", (map.balon + map.bblon) / 2);
 		this.processMapData(map, index);
 	}
 	
@@ -253,8 +253,8 @@ public class Packer {
 		map.segment = 256;
 		map.xcount = 2;
 		map.ycount = 2;
-		map.defaultx = 0;
-		map.defaulty = 0;
+		map.deflat = 0;
+		map.deflon = 0;
 		map.mercator = true;
 		map.segoffsetx = 0;
 		map.segoffsety = 0;
@@ -367,6 +367,11 @@ public class Packer {
 	}
 	
 	private double parseCoord(String str){
+		try {
+			return Double.parseDouble(str);
+		} catch (Exception e){
+			// Noop
+		}
 		String sdeg = null;
 		String smin = null;
 		String ssec = null;

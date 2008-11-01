@@ -5,12 +5,15 @@ import javax.microedition.lcdui.*;
 
 
 public class PreferenceForm extends Form {
+	public Command fileSystemConfigCommand;
+	
 	private Main main;
 	private boolean empty;
 	private ChoiceGroup locator;
 	private Vector locatorTypes;
 	private TextField locatorParamField;
 	private TextField fileSystemParamField;
+	private StringItem fileSystemConfigButton;
 	
 	public PreferenceForm(Main main){
 		super(main.getResource("preferences"));
@@ -65,11 +68,19 @@ public class PreferenceForm extends Form {
 	public void appendFileSystemParam(String fileSystemParam){
 		this.fileSystemParamField = new TextField(this.main.getResource("filesystem-param"), fileSystemParam != null ? fileSystemParam : "", 100, TextField.ANY);
 		this.append(this.fileSystemParamField);
+		this.fileSystemConfigButton = new StringItem(this.main.getResource("filesystem-config"), null, Item.BUTTON);
+		this.fileSystemConfigButton.addCommand(new Command(this.main.getResource("filesystem-config"), Command.ITEM, 0));
+		this.fileSystemConfigButton.setItemCommandListener(this.main);
+		this.append(this.fileSystemConfigButton);
 		this.empty = false;
 	}
 	
 	public String getFileSystemParam(){
 		return (this.fileSystemParamField != null) ? this.fileSystemParamField.getString() : null;
+	}
+	
+	public void setFileSystemParam(String param){
+		this.fileSystemParamField.setString(param);
 	}
 }
 

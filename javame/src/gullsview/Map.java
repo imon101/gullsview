@@ -4,8 +4,8 @@ import java.io.*;
 
 
 public class Map {
-	private static final int[] iout = new int[2];
-	private static final double[] dout = new double[2];
+	private final int[] tmpxy = new int[2];
+	private final double[] dout = new double[2];
 	
 	public int id;
 	
@@ -16,11 +16,11 @@ public class Map {
 	public int scale;
 	public int segment;
 	public int xcount, ycount;
-	public double defaultx, defaulty;
+	public double deflat, deflon;
 	public boolean mercator;
 	public int segoffsetx, segoffsety;
-	public double locax, locay, locbx, locby, loccx, loccy;
-	public double realax, realay, realbx, realby, realcx, realcy;
+	public double bax, bay, bbx, bby, bcx, bcy;
+	public double balat, balon, bblat, bblon, bclat, bclon;
 	
 	public void load(DataInput in) throws IOException {
 		this.name = in.readUTF();
@@ -31,47 +31,49 @@ public class Map {
 		this.segment = in.readInt();
 		this.xcount = in.readInt();
 		this.ycount = in.readInt();
-		this.defaultx = in.readDouble();
-		this.defaulty = in.readDouble();
+		this.deflat = in.readDouble();
+		this.deflon = in.readDouble();
 		this.mercator = in.readBoolean();
 		this.segoffsetx = in.readInt();
 		this.segoffsety = in.readInt();
-		this.locax = in.readDouble();
-		this.locay = in.readDouble();
-		this.locbx = in.readDouble();
-		this.locby = in.readDouble();
-		this.loccx = in.readDouble();
-		this.loccy = in.readDouble();
-		this.realax = in.readDouble();
-		this.realay = in.readDouble();
-		this.realbx = in.readDouble();
-		this.realby = in.readDouble();
-		this.realcx = in.readDouble();
-		this.realcy = in.readDouble();
+		this.bax = in.readDouble();
+		this.bay = in.readDouble();
+		this.bbx = in.readDouble();
+		this.bby = in.readDouble();
+		this.bcx = in.readDouble();
+		this.bcy = in.readDouble();
+		this.balat = in.readDouble();
+		this.balon = in.readDouble();
+		this.bblat = in.readDouble();
+		this.bblon = in.readDouble();
+		this.bclat = in.readDouble();
+		this.bclon = in.readDouble();
 	}
 	
-	public synchronized boolean insideGlobal(double lon, double lat){
-		this.toLocal(lon, lat, iout);
-		return this.insideLocal(iout[0], iout[1]);
+	public boolean insideGlobal(double lat, double lon){
+		synchronized(this.tmpxy){
+			this.toLocal(lat, lon, tmpxy);
+			return this.insideLocal(tmpxy[0], tmpxy[1]);
+		}
 	}
 	
 	public boolean insideLocal(int x, int y){
 		return (x >= 0) && (x < (this.xcount * this.segment)) && (y >= 0) && (y < (this.ycount * this.segment));
 	}
 	
-	public void toLocal(double lon, double lat, int[] out){
+	public void toLocal(double lat, double lon, int[] xy){
 		if(this.mercator){
-			this.mercatorToLocal(lon, lat, out);
+			this.mercatorToLocal(lat, lon, xy);
 		} else {
-			this.bilinearToLocal(lon, lat, out);
+			this.bilinearToLocal(lat, lon, xy);
 		}
 	}
 	
-	public void toGlobal(int x, int y, double[] out){
+	public void toGlobal(int x, int y, double[] latlon){
 		if(this.mercator){
-			this.mercatorToGlobal(x, y, out);
+			this.mercatorToGlobal(x, y, latlon);
 		} else {
-			this.bilinearToGlobal(x, y, out);
+			this.bilinearToGlobal(x, y, latlon);
 		}
 	}
 	
@@ -83,7 +85,7 @@ public class Map {
 		return (PoorMath.atan(PoorMath.exp(d)) - (Math.PI / 4)) * 2;
 	}
 	
-	private void mercatorToLocal(double lon, double lat, int[] out){
+	private void mercatorToLocal(double lat, double lon, int[] xy){
 		final double latmax = 85.0511287798066;
 		if(lat < -latmax) lat = -latmax;
 		if(lat > latmax) lat = latmax;
@@ -92,11 +94,11 @@ public class Map {
 		int n = 1 << this.scale;
 		double x = n * ((nx + 1) / 2);
 		double y = n * ((1 - ny) / 2);
-		out[0] = (int)((x - this.segoffsetx) * this.segment);
-		out[1] = (int)((y - this.segoffsety) * this.segment);
+		xy[0] = (int)((x - this.segoffsetx) * this.segment);
+		xy[1] = (int)((y - this.segoffsety) * this.segment);
 	}
 	
-	private void mercatorToGlobal(int x, int y, double[] out){
+	private void mercatorToGlobal(int x, int y, double[] latlon){
 		double _x = (x / (double) this.segment) + this.segoffsetx;
 		double _y = (y / (double) this.segment) + this.segoffsety;;
 		int n = 1 << this.scale;
@@ -104,23 +106,25 @@ public class Map {
 		double ny = 1 - (_y * 2 / n);
 		double lon = nx * 180;
 		double lat = Math.toDegrees(gd(ny * Math.PI));
-		out[0] = lon;
-		out[1] = lat;
+		latlon[0] = lat;
+		latlon[1] = lon;
 	}
 	
-	public synchronized void bilinearToLocal(double x, double y, int[] out){
-		bilinear(x, y, dout,
-			this.realax, this.realay, this.realbx, this.realby, this.realcx, this.realcy,
-			this.locax, this.locay, this.locbx, this.locby, this.loccx, this.loccy
-		);
-		out[0] = (int) dout[0];
-		out[1] = (int) dout[1];
+	private void bilinearToLocal(double x, double y, int[] latlon){
+		synchronized(this.dout){
+			bilinear(x, y, dout,
+				this.balat, this.balon, this.bblat, this.bblon, this.bclat, this.bclon,
+				this.bax, this.bay, this.bbx, this.bby, this.bcx, this.bcy
+			);
+			latlon[0] = (int) dout[0];
+			latlon[1] = (int) dout[1];
+		}
 	}
 	
-	public void bilinearToGlobal(int x, int y, double[] out){
-		bilinear(x, y, out,
-			this.locax, this.locay, this.locbx, this.locby, this.loccx, this.loccy,
-			this.realax, this.realay, this.realbx, this.realby, this.realcx, this.realcy
+	private void bilinearToGlobal(int x, int y, double[] latlon){
+		bilinear(x, y, latlon,
+			this.bax, this.bay, this.bbx, this.bby, this.bcx, this.bcy,
+			this.balat, this.balon, this.bblat, this.bblon, this.bclat, this.bclon
 		);
 	}
 	
