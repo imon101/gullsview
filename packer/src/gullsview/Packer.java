@@ -9,8 +9,8 @@ public class Packer {
 	private Console console;
 	private java.util.Map<String, Set<String>> restrictions;
 	private List<Map> maps;
-	private boolean flagFc, flagBt, flagLapi, flagM3g;
 	private Map world;
+	private List<String> constraints;
 	
 	public Packer(Console console) throws Exception {
 		this.console = console;
@@ -22,9 +22,12 @@ public class Packer {
 		this.addRestrictedEntry("M3G", "gullsview/M3gMapCanvas.class");
 		this.addRestrictedEntry("M3G", "pointer2.png");
 		this.addRestrictedEntry("M3G", "compass.png");
+		this.addRestrictedEntry("BTS", "locator.bts");
+		this.addRestrictedEntry("BTS", "gullsview/BtsLocator.class");
 		this.world = new Map();
 		this.processWorldMap(this.world);
 		this.maps.add(this.world);
+		this.constraints = new ArrayList<String>();
 	}
 	
 	public void addRestrictedEntry(String constraint, String path){
@@ -43,8 +46,8 @@ public class Packer {
 		return false;
 	}
 	
-	public boolean isAllowed(String path, String[] constraints){
-		for(String constraint : constraints){
+	public boolean isAllowed(String path){
+		for(String constraint : this.constraints){
 			if((this.restrictions.get(constraint)).contains(path)) return true;
 		}
 		return false;
@@ -59,10 +62,11 @@ public class Packer {
 	public void run() throws Exception {
 		this.usage();
 		
-		this.flagFc = this.console.inputBoolean("enable-fc", null, false);
-		this.flagBt = this.console.inputBoolean("enable-bt", null, false);
-		this.flagLapi = this.console.inputBoolean("enable-lapi", null, false);
-		this.flagM3g = this.console.inputBoolean("enable-m3g", null, false);
+		if(this.console.inputBoolean("enable-fc", null, false)) this.constraints.add("FC");
+		if(this.console.inputBoolean("enable-bt", null, false)) this.constraints.add("BT");
+		if(this.console.inputBoolean("enable-lapi", null, false)) this.constraints.add("LAPI");
+		if((this.console instanceof PropertiesConsole) && this.console.inputBoolean("enable-m3g", null, false)) this.constraints.add("M3G");
+		if((this.console instanceof PropertiesConsole) && this.console.inputBoolean("enable-bts", null, false)) this.constraints.add("BTS");
 		
 		int count = this.console.inputInt("map-count", null, 1);
 		for(int i = 0; i < count; i++){
@@ -96,7 +100,7 @@ public class Packer {
 		this.console.printSeparator();
 		this.console.printRes("start");
 		this.console.printSeparator();
-		String outputPath = this.filterJars(path, name, flagFc, flagBt, flagLapi, flagM3g);
+		String outputPath = this.filterJars(path, name);
 		int externalDataCount = this.pushMapsData(new FileDumper(){
 			private FileOutputStream fis;
 			public void next(String path) throws IOException {
@@ -130,39 +134,21 @@ public class Packer {
 		this.console.close();
 	}
 	
-	private String filterJars(String path, String name, boolean fc, boolean bt, boolean lapi, boolean m3g) throws IOException {
-		List<String> constraints = new ArrayList<String>();
+	private String filterJars(String path, String name) throws IOException {
 		String pathPrefix = path + "/" + name;
 		String pathSuffix = "";
-		if(fc){
-			pathSuffix += "_FC";
-			constraints.add("FC");
-		}
-		if(bt){
-			pathSuffix += "_BT";
-			constraints.add("BT");
-		}
-		if(lapi){
-			pathSuffix += "_LAPI";
-			constraints.add("LAPI");
-		}
-		if(m3g){
-			pathSuffix += "_M3G";
-			constraints.add("M3G");
-		}
-		String[] sconstraints = new String[constraints.size()];
-		constraints.toArray(sconstraints);
+		for(int i = 0; i < this.constraints.size(); i++) pathSuffix += "_" + this.constraints.get(i);
 		this.console.print(this.console.r("writing-output-start") + ": " + pathPrefix + pathSuffix + ".{jar|jad}");
-		this.filterJar(path, name + pathSuffix, sconstraints, (pathSuffix.length() > 0) ? pathSuffix.substring(1) : "none");
+		this.filterJar(path, name + pathSuffix, (pathSuffix.length() > 0) ? pathSuffix.substring(1) : "none");
 		this.console.print(this.console.r("writing-output-finish") + ": " + pathPrefix + pathSuffix + ".{jar|jad}");
 		return pathPrefix + pathSuffix;
 	}
 	
-	private void filterJar(String path, String name, final String[] constraints, final String extensions) throws IOException {
+	private void filterJar(String path, String name, final String extensions) throws IOException {
 		JarFilter.Filter filter = new JarFilter.Filter(){
 			public boolean processEntry(String name){
 				Packer.this.console.print(Packer.this.console.r("processing-entry") + ": " + name);
-				return Packer.this.isRestricted(name) ? Packer.this.isAllowed(name, constraints) : true;
+				return Packer.this.isRestricted(name) ? Packer.this.isAllowed(name) : true;
 			}
 			
 			public void processManifest(java.util.Map<String, String> values){
@@ -254,7 +240,7 @@ public class Packer {
 			this.console.errorRes("error-not-directory");
 		}
 		map.dataFormat = this.inputString(index, "data-format", "{0}_{1}.png");
-		map.dataIncluded = this.flagFc ? this.inputBoolean(index, "data-included", true) : true;
+		map.dataIncluded = this.constraints.contains("FC") ? this.inputBoolean(index, "data-included", true) : true;
 	}
 	
 	private void processWorldMap(Map map){
