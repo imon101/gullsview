@@ -11,11 +11,12 @@ import javax.microedition.rms.*;
 
 
 public class Main extends MIDlet implements CommandListener, ItemCommandListener, Persistable {
-	private static final int ACTION_HIDE_SPLASH = 1;
-	private static final int ACTION_SCROLL = 2;
-	private static final int ACTION_HIDE_MESSAGE = 3;
-	private static final int ACTION_SWITCH_LOCATOR_STATE = 4;
-	private static final int ACTION_BACKLIGHT = 5;
+	private static final int ACTION_SHOW_CANVAS = 1;
+	private static final int ACTION_SHOW_PREFERENCES = 2;
+	private static final int ACTION_SCROLL = 3;
+	private static final int ACTION_HIDE_MESSAGE = 4;
+	private static final int ACTION_SWITCH_LOCATOR_STATE = 5;
+	private static final int ACTION_BACKLIGHT = 6;
 	
 	private static final int POINT_PATH_START = 1;
 	private static final int POINT_PATH_CONT = 2;
@@ -105,8 +106,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				this.flagBtsLocator = this.classExists("gullsview.BtsLocator");
 				this.flagNokiaBacklight = this.classExists("com.nokia.mid.ui.DirectGraphics");
 				
+				boolean loaded = false;
 				try {
-					boolean loaded = this.recordStoreLoad(this, "preferences");
+					loaded = this.recordStoreLoad(this, "preferences");
 				} catch (Exception e){
 					this.warning("Cannot load preferences", e);
 				}
@@ -208,7 +210,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				this.mapList.setSelectedMap(this.loadedMapName);
 				this.setMap(this.mapList.getSelectedMap());
 				
-				this.schedule(ACTION_HIDE_SPLASH, null, 2000);
+				this.schedule(loaded ? ACTION_SHOW_CANVAS : ACTION_SHOW_PREFERENCES, null, 2000);
 				
 				this.flagInit = true;
 				
@@ -585,8 +587,12 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	
 	private void event(int action, Object data, TimerTask task){
 		switch(action){
-		case ACTION_HIDE_SPLASH:
+		case ACTION_SHOW_CANVAS:
 			this.show(this.canvas);
+			this.splash = null;
+			break;
+		case ACTION_SHOW_PREFERENCES:
+			this.show(this.preferenceForm);
 			this.splash = null;
 			break;
 		case ACTION_SCROLL:
@@ -840,15 +846,20 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		return null;
 	}
 	
+	private void appendForm(Form form, String title, String text){
+		StringItem si = new StringItem(title + "\n", text + "\n \n");
+		form.append(si);
+	}
+	
 	private Form createAboutForm(){
 		Form form = new Form(this.getResource("about"));
 		// form.append(new ImageItem("", this.getResImage("/stripe.png"), ImageItem.LAYOUT_CENTER, ""));
-		form.append(new StringItem(this.getResource("notice"), this.getResource("notice-text")));
-		form.append(new StringItem(this.getResource("author"), "Copyleft 2008 - Tomáš Darmovzal"));
-		form.append(new StringItem("E-mail", "tomas.darmovzal@gmail.com", Item.HYPERLINK));
-		form.append(new StringItem("URL", "http://darmovzal.nuabi.com", Item.HYPERLINK));
-		form.append(new StringItem(this.getResource("license"), this.getResource("license-text") + " GPLv3"));
-		form.append(new StringItem(this.getResource("controls"), this.getResource("controls-text")));
+		this.appendForm(form, this.getResource("notice"), this.getResource("notice-text"));
+		this.appendForm(form, this.getResource("author"), "Copyleft 2008 - Tomáš Darmovzal");
+		this.appendForm(form, "E-mail", "tomas.darmovzal@gmail.com");
+		this.appendForm(form, "URL", "http://darmovzal.nuabi.com");
+		this.appendForm(form, this.getResource("license"), this.getResource("license-text") + " GPLv3");
+		this.appendForm(form, this.getResource("controls"), this.getResource("controls-text"));
 		return form;
 	}
 	
