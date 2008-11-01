@@ -628,7 +628,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 			this.setResource("license", "Licence");
 			this.setResource("license-text", "Tato aplikace je šířena zdarma včetně zdrojových kódů za podmínek licence");
 			this.setResource("notice", "Upozornění");
-			this.setResource("notice-text", "Tato aplikace je autorem poskytována výhradně bez datového obsahu (bez rastrových mapových podkladů) nebo s datovým obsahem šířeným pod licencí kompatibilní s GPLv3.");
+			this.setResource("notice-text", "Tato aplikace je autorem poskytována výhradně bez datového obsahu (bez rastrových mapových podkladů) nebo s datovým obsahem šířeným pod licencí kompatibilní s GPLv3. Za datový obsah distribuovaný společně s aplikací nese zodpovědnost tvůrce konkrétního JAR balíčku (midlet suite). Pokud máte podezření, že datový obsah je šířený v rozporu s licencí či autorským zákonem, aplikaci ze svého zařízení odinstalujte.");
 			this.setResource("controls", "Ovládání");
 			this.setResource("controls-text", "křížek [#] - přepínání pohledu na výšku / na šířku\nhvězdička [*] - přepínání zobrazení přes celý displej\nhlavní tlačítko [FIRE] - umístění bodu pokračování trasy\nsměrové šipky a číselná tlačítka - ovládání pohybu mapy");
 			this.setResource("name", "Název");
@@ -681,7 +681,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 			this.setResource("license", "License");
 			this.setResource("license-text", "This application is a free software shared under terms and conditions of");
 			this.setResource("notice", "Notice");
-			this.setResource("notice-text", "This application is provided without any data content (raster maps) or with data content shared under license compatible to GPLv3.");
+			this.setResource("notice-text", "This application is provided without any data content (raster maps) or with data content shared under license compatible to GPLv3. Creator of certain JAR archive (midlet suite) is responsible for data content distributed with this application. If you suspect data content breaks license or any law valid in your country please uninstall application immediately.");
 			this.setResource("controls", "Controls");
 			this.setResource("controls-text", "pound [#] - switch landscape / portrait view\nasterisk [*] - switch fullscreen mode\nfire button - places path continuation point\narrow and numeric keys - controls map scroll");
 			this.setResource("name", "Name");
