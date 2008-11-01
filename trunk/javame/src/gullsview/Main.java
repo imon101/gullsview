@@ -1120,7 +1120,7 @@ public class Main extends MIDlet implements CommandListener, Persistable {
 	private void stopBacklight(){
 		this.backlight = false;
 		this.updateBacklightCommands();
-		this.updateBacklight(false);
+		// this.updateBacklight(false);
 	}
 	
 	private void updateBacklight(boolean on){
