@@ -12,7 +12,7 @@ public class BtsLocator extends Locator implements Runnable {
 	
 	public void init(){
 		this.timeout = 60000;
-		this.database = "vodafone";
+		this.database = "locator";
 	}
 	
 	public void start() throws Exception {
