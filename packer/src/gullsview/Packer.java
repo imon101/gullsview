@@ -20,6 +20,7 @@ public class Packer {
 		this.addRestrictedEntry("BT", "gullsview/Jsr082Locator.class");
 		this.addRestrictedEntry("LAPI", "gullsview/Jsr179Locator.class");
 		this.addRestrictedEntry("M3G", "gullsview/M3gMapCanvas.class");
+		this.addRestrictedEntry("M3G", "gullsview/TextureCache.class");
 		this.addRestrictedEntry("M3G", "pointer2.png");
 		this.addRestrictedEntry("M3G", "compass.png");
 		this.addRestrictedEntry("BTS", "locator.bts");
