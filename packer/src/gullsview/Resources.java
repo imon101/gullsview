@@ -80,15 +80,14 @@ public class Resources extends ListResourceBundle {
 		{"overview-5", "This application allows transformation of coordinates in two ways - using Mercator projection or using bilinear transformation:"},
 		{"overview-6", "1) Mercator - is geoid to cylinder projection with pyramidal tile division to 4 sub-tiles with higher resolution, is used eg. by project www.openstreetmap.org or maps.google.com."},
 		{"overview-7", "If your tiles are in this projection, you need to know only these three values: X (column) and Y (row) coordinate of left-top tile and zoom level index (0 means entire Earth in single tile, 1 means whole Earth in 4 tiles, 2 - in 16 tiles, etc."},
-		{"overview-8", "Tyto tři hodnoty jsou většinou součástí URL adresy pomocí níž byla konkrétní dlaždice stažena z dlaždicového serveru."},
-		{"overview-9", "2) Bilineární transformace - v tomto případě se souřadnice interpoluje ze zadaných zemských souřadnic tří rohů mapy."},
-		{"overview-10", "Dále je nutné znát parametry mobilního zařízení, pro které mapovou aplikaci vytváříte."},
-		{"overview-11", "Jde především o podporu jednotlivých rozšíření API - např. jestli má Java aplikace přístup k souborovému systému, k Bluetooth a podobně."},
-		{"overview-12", "Pokud jste si jisti, že Vaše zařízení obsahuje podporu JSR-75-FileConnection, je možné dlaždice NEvložit do JAR archivu mobilní aplikace, ale pouze je umístit do adresáře na paměťové kartě zařízení a nechat mobilní aplikaci tyto data postupně číst pomoci JSR-75 API."},
-		{"overview-13", "Pozor - někteří výrobci mobilních zařízení uživateli neumožní jednorázově povolit přístup Java aplikaci k paměťové kartě (souborovému systému) a při načtení každé další dlaždice uživatele obtěžují kontrolními otázkami."},
-		{"overview-14", "Pokud tedy máte připraveny všechny mapové dlaždice a informace k počítání souřadnic, můžete odpovídat na jednotlivé otázky tohoto průvodce."},
-		{"overview-15", "Po jeho dokončení bude ve zvoleném adresáři vytvořena dvojice souborů s příponami JAD a JAR které je možné obvyklým způsobem nahrát do mobilního zařízení s podporou Javy."},
-		{"", ""},
+		{"overview-8", "These three values are mostly contained in URL address used for downloading certain tile from tiling server."},
+		{"overview-9", "2) Bilinear transformation - in this case coordinate is interpolated from inserted Earth coordinates (latitude, longitude) of three map's corners."},
+		{"overview-10", "Also it is necessary to know parameters of mobile device to which is mapping application targeted."},
+		{"overview-11", "Support of certain API extensions is important - eg. ability of Java application to access device file system, Bluetooth interface, etc."},
+		{"overview-12", "If you are sure your device supports JSR-75-FileConnection, it is possible NOT to insert tiles into JAR archive of mobile application, but only copy them into memory card and let mobile application to read them using JSR-75 API."},
+		{"overview-13", "Attention - certain mobile device vendors do not allow user to enable permanent access to memory card (file system) from Java application and annoy user with is-it-safe dialogs on every file access (on every single tile load)."},
+		{"overview-14", "If you have prepared all map tiles and coordinate information you can start to answer to this wizard's questions."},
+		{"overview-15", "After wizard's finish in selected directory will be created pair of files suffixed JAD and JAR that are ready to deploy to mobile device by standard ways."},
 	};
 	
 	public Object[][] getContents(){
