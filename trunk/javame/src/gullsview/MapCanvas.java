@@ -143,7 +143,7 @@ public abstract class MapCanvas extends Canvas {
 			this.scrollCommandRaw(1, 1, pressed);
 			break;
 		case KEY_NUM5:
-			this.main.showTargetDistance();
+			if(pressed) this.main.showTargetDistance();
 			break;
 		case KEY_STAR:
 			if(!pressed) return;

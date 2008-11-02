@@ -1205,7 +1205,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		double[] latlon = new double[2];
 		this.getPosition(latlon);
 		double dist = Map.distance(this.targetLatitude, this.targetLongitude, latlon[0], latlon[1]);
-		this.setMessage(this.getResource("distance") + ": " + this.getDistanceStr(dist), 500);
+		this.setMessage(this.getResource("distance") + ": " + this.getDistanceStr(dist), 5000);
 	}
 }
 
