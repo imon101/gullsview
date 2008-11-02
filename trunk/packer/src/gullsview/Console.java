@@ -30,6 +30,7 @@ public abstract class Console {
 		String question = this.r(resid);
 		String s = this.input(id, question, def);
 		if(s == null) throw new RuntimeException("End of input");
+		this.print();
 		return s;
 	}
 	
@@ -71,6 +72,10 @@ public abstract class Console {
 	
 	public abstract void print(String text, String color);
 	
+	public void print(){
+		this.print("");
+	}
+	
 	public void print(String text){
 		this.print(text, null);
 	}
@@ -99,6 +104,22 @@ public abstract class Console {
 	
 	public void errorRes(String resid){
 		this.errorRes(resid, null);
+	}
+	
+	public void fatalError(String message){
+		this.fatalError(message, null);
+	}
+	
+	public void fatalError(String message, Throwable t){
+		this.printSeparator();
+		this.errorRes("error-before");
+		this.error(message, t);
+		this.errorRes("error-after");
+		this.printSeparator();
+	}
+	
+	public void fatalErrorRes(String res, Throwable t){
+		this.fatalError(this.r(res), t);
 	}
 	
 	public void close(){}

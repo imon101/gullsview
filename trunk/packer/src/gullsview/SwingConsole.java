@@ -11,11 +11,14 @@ public class SwingConsole extends Console {
 	private JFrame frame;
 	private JTextField text;
 	private JLabel label;
-	private JScrollPane scrollPane;
-	private ColorOutput output;
 	private GridBagLayout layout;
 	private GridBagConstraints gbc;
 	private BlockingQueue<String> queue;
+	private LineOutput lineOutput;
+	
+	/*
+	private JScrollPane scrollPane;
+	private ColorOutput output;
 	
 	public class ColorOutput extends JPanel {
 		private java.util.List<String> lines;
@@ -81,6 +84,24 @@ public class SwingConsole extends Console {
 			return this.height;
 		}
 	}
+	*/
+	
+	public class LineOutput extends JPanel {
+		private JTextArea ta;
+		private JScrollPane sp;
+		
+		public LineOutput(){
+			this.setLayout(new BorderLayout());
+			this.ta = new JTextArea(40, 0);
+			this.sp = new JScrollPane(this.ta);
+			this.add(this.sp);
+		}
+		
+		public void add(String line, String color){
+			this.ta.append(line + "\n");
+			this.ta.setCaretPosition((this.ta.getText()).length() - 1);
+		}
+	}
 	
 	public SwingConsole(){
 		this.queue = new LinkedBlockingQueue<String>();
@@ -97,14 +118,14 @@ public class SwingConsole extends Console {
 		this.layout = new GridBagLayout();
 		this.gbc = new GridBagConstraints();
 		this.frame.setLayout(this.layout);
-		this.output = new ColorOutput();
-		this.scrollPane = new JScrollPane(this.output);
-		this.add(this.scrollPane, 0, 2, 3, 1, 0, 5);
+		
 		this.label = new JLabel();
 		this.label.setHorizontalAlignment(SwingConstants.CENTER);
 		JScrollPane lsp = new JScrollPane(this.label);
 		this.add(lsp, 0, 0, 3, 1, 0, 1);
+		
 		this.add(new JLabel(this.r("answer") + ": "), 0, 1, 1, 1, 0, 0);
+		
 		this.text = new JTextField();
 		this.text.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent ae){
@@ -112,6 +133,7 @@ public class SwingConsole extends Console {
 			}
 		});
 		this.add(this.text, 1, 1, 1, 1, 1, 0);
+		
 		JButton button = new JButton(this.r("accept"));
 		button.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent ae){
@@ -119,6 +141,15 @@ public class SwingConsole extends Console {
 			}
 		});
 		this.add(button, 2, 1, 1, 1, 0, 0);
+		
+		/*
+		this.output = new ColorOutput();
+		this.scrollPane = new JScrollPane(this.output);
+		this.add(this.scrollPane, 0, 2, 3, 1, 0, 5);
+		*/
+		this.lineOutput = new LineOutput();
+		this.add(this.lineOutput, 0, 2, 3, 1, 0, 5);
+		
 		this.frame.setVisible(true);
 	}
 	
@@ -163,13 +194,14 @@ public class SwingConsole extends Console {
 	
 	public void print(String text, String color){
 		if(this.frame == null) return;
-		this.output.add(text, color);
-		(this.scrollPane.getViewport()).setViewPosition(new Point(0, this.output.getHeight()));
+		// this.output.add(text, color);
+		// (this.scrollPane.getViewport()).setViewPosition(new Point(0, this.output.getHeight()));
+		this.lineOutput.add(text, color);
 	}
 	
 	public void error(String message, Throwable t){
 		if(this.frame == null) return;
-		this.print(message, "red");
+		this.print(this.r("error") + ": " + message, "red");
 		while(t != null){
 			this.print(t.toString(), "red");
 			t = t.getCause();
