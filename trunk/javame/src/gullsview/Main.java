@@ -108,7 +108,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				
 				boolean loaded = false;
 				try {
+					this.info("Loading preferences");
 					loaded = this.recordStoreLoad(this, "preferences");
+					this.info("Preferences loaded");
 				} catch (Exception e){
 					this.warning("Cannot load preferences", e);
 				}
@@ -210,6 +212,18 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				this.mapList.setSelectedMap(this.loadedMapName);
 				this.setMap(this.mapList.getSelectedMap());
 				
+				boolean overlayLoaded = false;
+				try {
+					this.info("Loading overlay");
+					overlayLoaded = this.recordStoreLoad(this.overlayList, "overlay");
+					this.info("Loaded " + this.overlayList.getItemCount() + " overlay items");
+				} catch (Exception e){
+					this.warning("Cannot load overlay", e);
+				}
+				this.updateOverlay();
+				
+				this.updateTarget();
+				
 				this.schedule((loaded || this.preferenceForm.isEmpty()) ? ACTION_SHOW_CANVAS : ACTION_SHOW_PREFERENCES, null, 2000);
 				
 				this.flagInit = true;
@@ -275,6 +289,12 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.recordStoreSave(this, "preferences");
 		} catch (Exception e){
 			this.warning("Cannot save preferences", e);
+		}
+		try {
+			this.info("Saving overlay (" + this.overlayList.getItemCount() + " items)");
+			this.recordStoreSave(this.overlayList, "overlay");
+		} catch (Exception e){
+			this.warning("Cannot save overlay", e);
 		}
 		this.timer.cancel();
 		this.timer = null;
@@ -457,6 +477,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			if(disp == this.mapList){
 				this.setMap(this.mapList.getSelectedMap());
 				this.updateOverlay();
+				this.updateTarget();
 				this.inOverlayList = false;
 				this.show(this.canvas);
 			}
@@ -648,7 +669,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("notice", "Upozornění");
 			this.setResource("notice-text", "Tato aplikace je autorem poskytována výhradně bez datového obsahu (bez rastrových mapových podkladů) nebo s datovým obsahem šířeným pod licencí kompatibilní s GPLv3. Za datový obsah distribuovaný společně s aplikací nese zodpovědnost tvůrce konkrétního JAR balíčku (midlet suite). Pokud máte podezření, že datový obsah je šířený v rozporu s licencí či autorským zákonem, aplikaci ze svého zařízení odinstalujte.");
 			this.setResource("controls", "Ovládání");
-			this.setResource("controls-text", "křížek [#] - přepínání pohledu na výšku / na šířku\nhvězdička [*] - přepínání zobrazení přes celý displej\nhlavní tlačítko [FIRE] - umístění bodu pokračování trasy\nsměrové šipky a číselná tlačítka - ovládání pohybu mapy");
+			this.setResource("controls-text", "křížek [#] - přepínání pohledu na výšku / na šířku\nhvězdička [*] - přepínání zobrazení přes celý displej\nhlavní tlačítko [FIRE] - umístění bodu pokračování trasy\n[5] - zobrazení vzdálenosti od cíle\nsměrové šipky a číselná tlačítka - ovládání pohybu mapy");
 			this.setResource("name", "Název");
 			this.setResource("latitude", "Souřadnice - šířka");
 			this.setResource("longitude", "Souřadnice - délka");
@@ -673,9 +694,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("select-map", "Výběr mapy");
 			this.setResource("switch-to-midp-canvas", "Klasické zobrazení");
 			this.setResource("switch-to-m3g-canvas", "3D zobrazení");
-			this.setResource("start-locator", "Spustit GPS");
-			this.setResource("stop-locator", "Ukončit GPS");
-			this.setResource("locator-error", "Chyba GPS");
+			this.setResource("start-locator", "Spustit lokátor");
+			this.setResource("stop-locator", "Ukončit lokátor");
+			this.setResource("locator-error", "Chyba lokátoru");
 			this.setResource("preferences", "Nastavení");
 			this.setResource("locator", "Lokátor");
 			this.setResource("locator-none", "Žádný");
@@ -690,6 +711,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("stop-backlight", "Vypnout trvalé podsvícení");
 			this.setResource("backlight-warning", "Podsvícení žere baterku!!!");
 			this.setResource("level-up", "o úroveň výš");
+			this.setResource("distance", "Vzdálenost");
 			this.setResource("", "");
 		} else {
 			this.setResource("exit", "Exit");
@@ -704,7 +726,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("notice", "Notice");
 			this.setResource("notice-text", "This application is provided without any data content (raster maps) or with data content shared under license compatible to GPLv3. Creator of certain JAR archive (midlet suite) is responsible for data content distributed with this application. If you suspect data content breaks license or any law valid in your country please uninstall application immediately.");
 			this.setResource("controls", "Controls");
-			this.setResource("controls-text", "pound [#] - switch landscape / portrait view\nasterisk [*] - switch fullscreen mode\nfire button - places path continuation point\narrow and numeric keys - controls map scroll");
+			this.setResource("controls-text", "pound [#] - switch landscape / portrait view\nasterisk [*] - switch fullscreen mode\nfire button - places path continuation point\n[5] - display distance from target\narrow and numeric keys - controls map scroll");
 			this.setResource("name", "Name");
 			this.setResource("latitude", "Latitude");
 			this.setResource("longitude", "Longitude");
@@ -729,9 +751,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("select-map", "Map selection");
 			this.setResource("switch-to-midp-canvas", "Classic view");
 			this.setResource("switch-to-m3g-canvas", "3D view");
-			this.setResource("start-locator", "Start GPS");
-			this.setResource("stop-locator", "Stop GPS");
-			this.setResource("locator-error", "GPS error");
+			this.setResource("start-locator", "Start locator");
+			this.setResource("stop-locator", "Stop locator");
+			this.setResource("locator-error", "Locator error");
 			this.setResource("preferences", "Preferences");
 			this.setResource("locator", "Locator");
 			this.setResource("locator-none", "None");
@@ -746,6 +768,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("stop-backlight", "Stop backlight");
 			this.setResource("backlight-warning", "Backlight eats up battery!!!");
 			this.setResource("level-up", "up one level");
+			this.setResource("distance", "Distance");
 		}
 		// this.setResource("", "");
 	}
@@ -944,6 +967,8 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			switch(this.overlayList.getItemType(i)){
 			case OverlayList.TYPE_PATH_START:
 				color = this.overlayList.getItemColor(i);
+				String length = this.getDistanceStr(this.overlayList.getPathLength(i));
+				name = (name == null) ? length : name + " [" + length + "]";
 				started = true;
 				prevx = x;
 				prevy = y;
@@ -1169,6 +1194,18 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	public void fileSystemConfigured(String fileSystemParam){
 		if(fileSystemParam != null) this.preferenceForm.setFileSystemParam(fileSystemParam);
 		this.show(this.preferenceForm);
+	}
+	
+	private String getDistanceStr(double dist){
+		return (dist > 1000) ? (Math.floor(dist / 10) / 100) + "km" : ((int) dist) + "m";
+	}
+	
+	public void showTargetDistance(){
+		if(Double.isNaN(this.targetLatitude) || Double.isNaN(this.targetLongitude)) return;
+		double[] latlon = new double[2];
+		this.getPosition(latlon);
+		double dist = Map.distance(this.targetLatitude, this.targetLongitude, latlon[0], latlon[1]);
+		this.setMessage(this.getResource("distance") + ": " + this.getDistanceStr(dist), 500);
 	}
 }
 

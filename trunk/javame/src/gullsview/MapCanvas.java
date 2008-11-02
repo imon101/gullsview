@@ -142,6 +142,9 @@ public abstract class MapCanvas extends Canvas {
 		case KEY_NUM9:
 			this.scrollCommandRaw(1, 1, pressed);
 			break;
+		case KEY_NUM5:
+			this.main.showTargetDistance();
+			break;
 		case KEY_STAR:
 			if(!pressed) return;
 			this.setFullscreen(!this.fullscreen);

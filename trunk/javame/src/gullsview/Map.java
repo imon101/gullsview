@@ -147,6 +147,15 @@ public class Map {
 		out[1] = y;
 	}
 	
+	public static final double distance(double lat1, double lon1, double lat2, double lon2){
+		double radius = 6378000;
+		double a1 = Math.toRadians(lat1);
+		double b1 = Math.toRadians(lon1);
+		double a2 = Math.toRadians(lat2);
+		double b2 = Math.toRadians(lon2);
+		return PoorMath.acos(Math.cos(a1) * Math.cos(b1) * Math.cos(a2) * Math.cos(b2) + Math.cos(a1) * Math.sin(b1) * Math.cos(a2) * Math.sin(b2) + Math.sin(a1) * Math.sin(a2)) * radius;
+	}
+	
 	public String toString(){
 		return this.title + ":" + this.scale + ((vendor.length() > 0) ? " (" + this.vendor + ")" : "");
 	}

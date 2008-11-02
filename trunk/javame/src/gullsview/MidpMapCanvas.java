@@ -89,7 +89,9 @@ public class MidpMapCanvas extends MapCanvas {
 		);
 		
 		if((this.targetx >= 0) && (this.targety != 0)){
-			g.setColor(0xaa0000);
+			g.setColor(0x000000);
+			this.drawLine(g, hw, hh, this.targetx - this.cx + hw, this.targety - this.cy + hh);
+			g.setColor(0xaaaa00);
 			g.setStrokeStyle(Graphics.DOTTED);
 			this.drawLine(g, hw, hh, this.targetx - this.cx + hw, this.targety - this.cy + hh);
 			g.setStrokeStyle(Graphics.SOLID);
@@ -174,6 +176,7 @@ public class MidpMapCanvas extends MapCanvas {
 		int deltax = x2 - x1;
 		int deltay = y2 - y1;
 		int len = (int) Math.sqrt((deltax * deltax) + (deltay * deltay));
+		if(len == 0) return;
 		int mx = -(deltay * width) / (2 * len);
 		int my = (deltax * width) / (2 * len);
 		int ax = x1 + mx;

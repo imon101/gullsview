@@ -90,6 +90,10 @@ public class PoorMath {
 		for(int i = 0; i < m; i++) s *= 2;
 		return Math.PI / (2 * agmean(1, 4D / s)) - (m * LOG2);
 	}
+	
+	public static double acos(double x){
+		return 2 * atan(Math.sqrt(1 - (x * x)) / (1 + x));
+	}
 }
 
 
