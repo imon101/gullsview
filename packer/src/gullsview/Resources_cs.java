@@ -5,6 +5,9 @@ import java.util.*;
 
 public class Resources_cs extends ListResourceBundle {
 	private static final Object[][] CONTENTS = new Object[][]{
+		{"error", "Chyba"},
+		{"error-before", "Nastala následující chyba"},
+		{"error-after", "Nyní prosím ukončete aplikaci"},
 		{"error-not-int", "Zadejte prosím celočíselnou hodnotu"},
 		{"error-not-double", "Zadejte prosím číslo"},
 		{"error-not-boolean", "Zadejte prosím ano nebo ne"},
@@ -69,6 +72,22 @@ public class Resources_cs extends ListResourceBundle {
 		{"usage-3", "-stdio - spustí aplikaci v textovém režimu (z textové konzole)"},
 		{"usage-4", "-properties FILE - spustí aplikaci v dávkovém režimu - odpovědi na všechny dotazy čerpá ze souboru FILE ve formátu Java Properties"},
 		{"usage-5", "-swing - spustí aplikaci v grafickém režimu (výchozí volba)"},
+		{"overview-0", "Tato aplikace Vás v několika krocích provede procesem vytvoření mapové aplikace pro mobilní telefon."},
+		{"overview-1", "Nejdříve si připravte mapová data ve formě čtvercových obrázků - dlaždic, z nichž bude celková mapa seskládána."},
+		{"overview-2", "Soubory s jednotlivými dlaždicemi si pojmenujte tak, aby název obsahoval číselný index řádku a sloupce této dlaždice (např. 10_12.png, 11_1.png, atd.)."},
+		{"overview-3", "Levá horní dlaždice má index 0:0, soubor se tedy bude jmenovat např. 0_0.png"},
+		{"overview-4", "Dále je dobré vědět jakým způsobem se mají přepočítávat mapové souřadnice na skutečné zemské souřadnice (zemská šířka, zemská délka)"},
+		{"overview-5", "Tato aplikace umožňuje počítání souřadnic dvěma způsoby - systémem Mercator a bilineární transformací:"},
+		{"overview-6", "1) Mercator - je projekcí geoidu na váleci s pyramidovým dělením dlaždic na 4 poddlaždice s vyšším rozlišením, používá jej např. projekt www.openstreetmap.org nebo maps.google.com."},
+		{"overview-7", "Pokud máte dlaždice v této projekci, stačí Vám znát tyto tři informace: X-ovou a Y-ovou souřadnici levé horní dlaždice a číslo úrovně přiblížení (0 znamená celá země v jediné dlaždici, 1 znamená celá země ve 4 dlaždicích, 2 - v 16 dlaždicích, atd."},
+		{"overview-8", "Tyto tři hodnoty jsou většinou součástí URL adresy pomocí níž byla konkrétní dlaždice stažena z dlaždicového serveru."},
+		{"overview-9", "2) Bilineární transformace - v tomto případě se souřadnice interpoluje ze zadaných zemských souřadnic tří rohů mapy."},
+		{"overview-10", "Dále je nutné znát parametry mobilního zařízení, pro které mapovou aplikaci vytváříte."},
+		{"overview-11", "Jde především o podporu jednotlivých rozšíření API - např. jestli má Java aplikace přístup k souborovému systému, k Bluetooth a podobně."},
+		{"overview-12", "Pokud jste si jisti, že Vaše zařízení obsahuje podporu JSR-75-FileConnection, je možné dlaždice NEvložit do JAR archivu mobilní aplikace, ale pouze je umístit do adresáře na paměťové kartě zařízení a nechat mobilní aplikaci tyto data postupně číst pomoci JSR-75 API."},
+		{"overview-13", "Pozor - někteří výrobci mobilních zařízení uživateli neumožní jednorázově povolit přístup Java aplikaci k paměťové kartě (souborovému systému) a při načtení každé další dlaždice uživatele obtěžují kontrolními otázkami."},
+		{"overview-14", "Pokud tedy máte připraveny všechny mapové dlaždice a informace k počítání souřadnic, můžete odpovídat na jednotlivé otázky tohoto průvodce."},
+		{"overview-15", "Po jeho dokončení bude ve zvoleném adresáři vytvořena dvojice souborů s příponami JAD a JAR které je možné obvyklým způsobem nahrát do mobilního zařízení s podporou Javy."},
 		{"", ""},
 	};
 	

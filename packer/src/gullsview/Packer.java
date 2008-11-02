@@ -58,6 +58,8 @@ public class Packer {
 		this.console.printSeparator();
 		for(int i = 0; i < 6; i++) this.console.printRes("usage-" + i);
 		this.console.printSeparator();
+		for(int i = 0; i < 16; i++) this.console.printRes("overview-" + i);
+		this.console.printSeparator();
 	}
 	
 	public void run() throws Exception {
@@ -302,11 +304,11 @@ public class Packer {
 				String name = java.text.MessageFormat.format(map.dataFormat, new Object[]{ new Integer(x), new Integer(y) });
 				File file = new File(new File(map.dataDir), name);
 				if(!file.exists()){
-					this.console.error(this.console.r("error-file-not-exist") + ": \"" + file.getCanonicalPath() + "\"");
+					this.console.fatalError(this.console.r("error-file-not-exist") + ": \"" + file.getCanonicalPath() + "\"");
 					throw new IOException("File does not exist: " + file);
 				}
 				if(!file.isFile()){
-					this.console.error(this.console.r("error-not-file") + ": \"" + file.getCanonicalPath() + "\"");
+					this.console.fatalError(this.console.r("error-not-file") + ": \"" + file.getCanonicalPath() + "\"");
 					throw new IOException("Path is not file: " + file);
 				}
 				if(inner){
