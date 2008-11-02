@@ -65,7 +65,7 @@ public class Resources_cs extends ListResourceBundle {
 		{"adding-segment-file-to-dir", "Vytvářím soubor pro uložení na paměťovou kartu zařízení"},
 		{"writing-output-start", "Vytvářím midlet suite"},
 		{"writing-output-finish", "Midlet suite vytvořen"},
-		{"copy-data-along", "POZOR!!! Před nasazením aplikace nejprve do mobilního zařízení nakopírujte vytvořený adresář s mapovými daty!"},
+		{"copy-data-along", "POZOR!!! Před nasazením aplikace nejprve do mobilního zařízení nakopírujte vytvořený adresář s mapovými daty (s názvem končícím _DATA)!"},
 		{"usage-0", "Použití:"},
 		{"usage-1", "java -jar GullsViewPacker.jar [-stdio] [-properties FILE] [-swing]"},
 		{"usage-2", "kde jednotlivé volby znamenají toto:"},
