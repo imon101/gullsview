@@ -210,7 +210,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				this.mapList.setSelectedMap(this.loadedMapName);
 				this.setMap(this.mapList.getSelectedMap());
 				
-				this.schedule(loaded ? ACTION_SHOW_CANVAS : ACTION_SHOW_PREFERENCES, null, 2000);
+				this.schedule((loaded || this.preferenceForm.isEmpty()) ? ACTION_SHOW_CANVAS : ACTION_SHOW_PREFERENCES, null, 2000);
 				
 				this.flagInit = true;
 				
@@ -456,6 +456,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		} else if(cmd == List.SELECT_COMMAND){
 			if(disp == this.mapList){
 				this.setMap(this.mapList.getSelectedMap());
+				this.updateOverlay();
 				this.inOverlayList = false;
 				this.show(this.canvas);
 			}
