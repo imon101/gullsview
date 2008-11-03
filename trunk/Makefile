@@ -1,9 +1,10 @@
+VERSION=0.9
+DIST_SOURCES=GullsViewPacker.jar doc LICENSE README Makefile javame/GullsView.mf javame/Makefile javame/res javame/src packer/GullsViewPacker.mf packer/Makefile packer/res packer/src
 BTADDR = 00:22:98:1E:AD:91
 UPLOADJAR = GullsView.jar
 
-#all: info build
-all: build run
-	midp GullsView.jad
+
+all: info build
 
 info:
 	###################################################################
@@ -46,5 +47,8 @@ upload:
 	# Current BTADDR is: $(BTADDR)
 	##################################################
 	obexftp -b $(BTADDR) -B 7 -p $(UPLOADJAR)
+
+dist: clean build
+	zip -r GullsViewPacker_$(VERSION).zip $(DIST_SOURCES)
 
 
