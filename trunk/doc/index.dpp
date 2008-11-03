@@ -12,16 +12,66 @@
 .HEADER 2;.REF http://code.google.com/p/gullsview/;English version
 
 
+
 .HEADER 1;Popis
+
+
+.IMAGE image/k800i.jpg;Aplikace běžící na telefonu SonyEricsson K800i
 
 
 Aplikace
 .STRONG;Gull's View 
+uživateli umožňuje používat své mobilní zařízení jako off-line prohlížeč rastrových map s možností navigace pomocí vestavěného GPS, případně externího GPS modulu komunikujícího se zařízením pomocí Bluetooth.
+
+
+Aplikace samotná neobsahuje žádné mapy, ty si musí uživatel obstarat sám např. stažením ze zdroje na Internetu. Před stahováním rastrových map si vždy pečlivě přečtěte podmínky používání zvolené mapové služby!
+
+
+Aplikace funguje pouze na zařízeních s podporou MIDP 2.0 (CLDC 1.1).
+
+
+
+V současnosti jsou implementovány následující vlastnosti:
+
++LIST
+.ITEM;zobrazení mapového výřezu a plynulé přesouvání v mapě pomocí kurzorových kláves
+.ITEM;zaznamenávání vlastních tras a bodů zájmu do mapy
+.ITEM;zobrazení délek jednotlivých tras
+.ITEM;zobrazení směru ke zvolenému cíli a jeho vzdálenosti
+.ITEM;uložení stavu aplikace při ukončení a jeho obnovení při dalším spuštění
+.ITEM;možnost dočasného pozastavení aplikace
+.ITEM;permanentní podsvícení displeje (tato funkce je dostupná pouze na některých zařízeních SonyEricsson a Nokia)
+.ITEM;lokalizace pomocí vestavěné GPS (pouze u zařízení s podporou JSR-179 Location API)
+.ITEM;lokalizace pomocí externího GPS Bluetooth (pouze u zařízení s podporou JSR-82 Bluetooth API)
+-LIST
+
+
+Experimentálně také:
+
++LIST
+.ITEM;přibližná lokalizace podle aktuálně registrované BTS (základnové stanice signálu GSM) - funguje pouze na některých telefonech SonyEricsson
+.ITEM;zobrazení mapy ve 3D
+-LIST
+
+
+
+.IMAGE image/gullsview.png;Princip aplikace Gull's View
+
+
+
+.HEADER 1;Ukázky mapových aplikací
 
 
 
 
 .HEADER 1;Download
+
+
+Aplikace je hostována službou
+.STRONG;code.google.com
+, stahujte na této adrese:
+.REF http://code.google.com/p/gullsview/downloads/list;http://code.google.com/p/gullsview/downloads/list
+
 
 
 .HEADER 1;Instalace a spuštění
