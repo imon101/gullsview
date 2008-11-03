@@ -1,10 +1,9 @@
 MIDlet-Vendor: Tomas Darmovzal <tomas.darmovzal@gmail.com>
-MIDlet-Jar-Size: 841300
+MIDlet-Jar-Size: 841269
 MicroEdition-Profile: MIDP-2.0
 MIDlet-Name: GullsViewExample1
 MIDlet-1: Gull's View, icon.png, gullsview.Main
 MicroEdition-Configuration: CLDC-1.1
 MIDlet-Jar-URL: GullsViewExample1.jar
 MIDlet-Description: Offline mapping application (extensions: none)
-MIDlet-Permissions: javax.microedition.io.Connector.file.read
 MIDlet-Version: 1.0
