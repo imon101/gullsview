@@ -180,6 +180,7 @@ public class Packer {
 		File jar = new File(jarFileName);
 		jad.put("MIDlet-Jar-URL", name + ".jar");
 		jad.put("MIDlet-Jar-Size", String.valueOf(jar.length()));
+// TODO: MIDlet-Permissions: javax.microedition.io.Connector.file.read
 		FileOutputStream fos = new FileOutputStream(path + "/" + name + ".jad");
 		jf.writeManifest(jad, fos);
 		fos.flush();
