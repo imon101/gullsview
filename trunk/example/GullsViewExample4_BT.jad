@@ -1,0 +1,10 @@
+MIDlet-Vendor: Tomas Darmovzal <tomas.darmovzal@gmail.com>
+MIDlet-Jar-Size: 844473
+MicroEdition-Profile: MIDP-2.0
+MIDlet-Name: GullsViewExample4_BT
+MIDlet-1: Gull's View, icon.png, gullsview.Main
+MicroEdition-Configuration: CLDC-1.1
+MIDlet-Jar-URL: GullsViewExample4_BT.jar
+MIDlet-Description: Offline mapping application (extensions: BT)
+MIDlet-Permissions: javax.microedition.io.Connector.file.read
+MIDlet-Version: 1.0
