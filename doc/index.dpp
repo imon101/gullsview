@@ -35,6 +35,8 @@ V současnosti jsou implementovány následující vlastnosti:
 
 +LIST
 .ITEM;zobrazení mapového výřezu a plynulé přesouvání v mapě pomocí kurzorových kláves
+.ITEM;možnost zobrazení mapy přes celý displej (fullscreen)
+.ITEM;možnost zobrazení mapy otočené o 90 stupňů (landscape)
 .ITEM;zaznamenávání vlastních tras a bodů zájmu do mapy
 .ITEM;zobrazení délek jednotlivých tras
 .ITEM;zobrazení směru ke zvolenému cíli a jeho vzdálenosti
@@ -42,7 +44,7 @@ V současnosti jsou implementovány následující vlastnosti:
 .ITEM;možnost dočasného pozastavení aplikace
 .ITEM;permanentní podsvícení displeje (tato funkce je dostupná pouze na některých zařízeních SonyEricsson a Nokia)
 .ITEM;lokalizace pomocí vestavěné GPS (pouze u zařízení s podporou JSR-179 Location API)
-.ITEM;lokalizace pomocí externího GPS Bluetooth (pouze u zařízení s podporou JSR-82 Bluetooth API)
+.ITEM;lokalizace pomocí externího GPS modulu s Bluetooth (pouze u zařízení s podporou JSR-82 Bluetooth API)
 -LIST
 
 
