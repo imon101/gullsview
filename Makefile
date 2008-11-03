@@ -38,6 +38,7 @@ clean:
 	cd javame; make clean
 	cd packer; make clean
 	rm -f *.jar *.jad
+	rm -f *.zip
 
 upload:
 	##################################################
@@ -48,8 +49,7 @@ upload:
 	##################################################
 	obexftp -b $(BTADDR) -B 7 -p $(UPLOADJAR)
 
-#dist: clean build
-dist: 
+dist: clean build
 	zip -r GullsViewPacker_$(VERSION).zip $(DIST_SOURCES) -x '.svn/*' -x '*/.svn/*' -x '*/*/.svn/*'
 
 

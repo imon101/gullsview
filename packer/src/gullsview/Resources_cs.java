@@ -38,7 +38,7 @@ public class Resources_cs extends ListResourceBundle {
 		{"map-count", "Zadejte počet map"},
 		{"map-name", "Identifikátor mapy (bez mezer, diakritiky a speciálních znaků)"},
 		{"map-title", "Titulek mapy"},
-		{"map-vendor", "Vaše jméno a příjmení"},
+		{"map-vendor", "Název zdroje mapových dat (např. mapového serveru)"},
 		{"map-scale", "Číselné označení měřítka mapy (větší číslo = větší detail)"},
 		{"map-segment", "Rozměr mapové dlaždice (čtvercového obrázku) v pixelech"},
 		{"map-xcount", "Počet mapových dlaždic ve vodorovném směru"},

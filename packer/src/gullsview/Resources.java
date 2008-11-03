@@ -38,7 +38,7 @@ public class Resources extends ListResourceBundle {
 		{"map-count", "Insert map count"},
 		{"map-name", "Map identifier (no spaces or special characters)"},
 		{"map-title", "Map title"},
-		{"map-vendor", "Your name and surname"},
+		{"map-vendor", "Map vendor name (eg. name of mapping server)"},
 		{"map-scale", "Integer value of map zoom (greater number = higher detail)"},
 		{"map-segment", "Size (width = height) of map tile (square map image) in pixels"},
 		{"map-xcount", "Number of map tiles in horizontal axis"},
