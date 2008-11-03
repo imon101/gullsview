@@ -64,6 +64,31 @@ Experimentálně také:
 .HEADER 1;Ukázky mapových aplikací
 
 
+Základní ukázka bez všech přídavných vlastností (měla by běžet na většině telefonů):
+.REF http://gullsview.googlecode.com/svn/trunk/example/GullsViewExample1.jad;JAD
++
+.REF http://gullsview.googlecode.com/svn/trunk/example/GullsViewExample1.jar;JAR
+
+
+Ukázka pro zařízení s podporou JSR-75 (souborový systém):
+.REF http://gullsview.googlecode.com/svn/trunk/example/GullsViewExample2_FC.jad;JAD
++
+.REF http://gullsview.googlecode.com/svn/trunk/example/GullsViewExample2_FC.jar;JAR
++
+.REF http://gullsview.googlecode.com/svn/trunk/example/GullsViewExample2_FC_DATA.zip;Rozbalte tento archiv na paměťovou kartu mobilního telefonu
+
+
+Ukázka pro zařízení s podporou vestavěného GPS (JSR-179):
+.REF http://gullsview.googlecode.com/svn/trunk/example/GullsViewExample3_LAPI.jad;JAD
++
+.REF http://gullsview.googlecode.com/svn/trunk/example/GullsViewExample3_LAPI.jar;JAR
+
+
+Ukázka pro zařízení s podporou Bluetooth API (JSR-82) a s externím Bluetooth GPS modulem:
+.REF http://gullsview.googlecode.com/svn/trunk/example/GullsViewExample4_BT.jad;JAD
++
+.REF http://gullsview.googlecode.com/svn/trunk/example/GullsViewExample4_BT.jar;JAR
+
 
 
 .HEADER 1;Download
