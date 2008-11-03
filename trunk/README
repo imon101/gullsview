@@ -1,0 +1,67 @@
+=Description=
+
+Application Gull's View allows user to use mobile device as off-line
+raster map browser with navigation feature using internal GPS
+capabilities or external Bluetooth GPS module.
+
+Application itself does not contain any maps, user has to collect maps
+from other sources - eg. by downloading from some mapping service.
+Before downloading always read all terms of use or licenses of certain
+mapping service!
+
+Application requires support of MIDP 2.0 (CLDC 1.1).
+
+Currently are implemented following features:
+* displaying map viewport and continuous moving in map using curson keys
+* optional fullscreen view
+* optional landscape view (turned by 90 deg)
+* drawing user's own traces and points of interest into map
+* displaying length of every trace
+* visualizing directions to selected target and its distance
+* saving application state when exiting and its restoring during
+  following start
+* temporary pausing application
+* switching permanent display backlight (available only on some
+  SonyEricsson or Nokia devices)
+* location using internal GPS (available on devices with support of
+  JSR-179 Location API)
+* location using external GPS Bluetooth module (available on devices
+  with support of JSR-82 Bluetooth API) 
+
+Experimentally:
+* approximate location using currently registered BTS (GSM signal base)
+  (available on some SonyEricsson? devices)
+* 3D view 
+
+
+=Instalation and Running=
+
+Application is not installed, only unpack downloaded archive and run
+file GullsViewPacker.jar by clicking or from text console using command:
+
+java -jar GullsViewPacker.jar [-stdio] [-properties FILE] [-swing]
+
+where options means:
+ -stdio - runs application in text mode (from text console)
+ -properties FILE - runs application in batch mode - answers to all
+    questions are read from FILE in Java Properties format
+ -swing - runs application in graphic mode (default)
+ 
+
+=License=
+
+Copyleft 2008 Tomáš Darmovzal
+<tomas.darmovzal@gmail.com>
+This application is a free software shared under terms and conditions of GPLv3.
+
+
+=Notice=
+
+This application is provided without any data content (raster maps) or
+with data content shared under license compatible to GPLv3. Creator
+of certain JAR archive (midlet suite) is responsible for data content
+distributed with this application. If you suspect data content breaks
+license or any law valid in your country please uninstall application
+immediately.
+
+
