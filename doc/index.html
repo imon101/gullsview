@@ -36,16 +36,18 @@ Gull&apos;s View
 </div><!-- .window-stripe -->
 <div class="window-text">
 <div class="linebreak"></div>
+<div class="header-2">
+<a href="http://code.google.com/p/gullsview/" class="ref">English version
+</a></div><!-- .header-* -->
+<div class="vspace"></div>
 <div class="header-1">
 Popis
 </div><!-- .header-* -->
 <div class="vspace"></div>
-<div class="header-1">
-License
-</div><!-- .header-* -->
-<div class="vspace"></div>
-Copyleft 2008 Tomáš Darmovzal
-<div class="vspace"></div>
+Aplikace
+<span class="strong">Gull&apos;s View 
+</span><div class="vspace"></div>
+<div class="clear"></div>
 <div class="header-1">
 Download
 </div><!-- .header-* -->
@@ -53,7 +55,104 @@ Download
 <div class="header-1">
 Instalace a spuštění
 </div><!-- .header-* -->
+<div class="linebreak"></div>
+Aplikace se neinstaluje, pouze rozbalte stažený archiv a spusťte soubor
+<span class="strong">GullsViewPacker.jar
+</span>kliknutím nebo z textové konzole příkazem
 <div class="vspace"></div>
+<div class="code">java -jar GullsViewPacker.jar [-stdio] [-properties FILE] [-swing]
+</div><!-- .code -->
+<div class="vspace"></div>
+kde jednotlivé volby znamenají toto:
+<div class="vspace"></div>
+ -stdio - spustí aplikaci v textovém režimu (z textové konzole)
+<div class="linebreak"></div>
+ -properties FILE - spustí aplikaci v dávkovém režimu - odpovědi na všechny dotazy čerpá ze souboru FILE ve formátu Java Properties
+<div class="linebreak"></div>
+ -swing - spustí aplikaci v grafickém režimu (výchozí volba)
+<div class="vspace"></div>
+<div class="clear"></div>
+<div class="header-1">
+</div><!-- .header-* -->
+<div class="vspace"></div>
+<div class="clear"></div>
+<div class="header-1">
+Úvodní text aplikace
+</div><!-- .header-* -->
+<div class="linebreak"></div>
+Tato aplikace Vás v několika krocích provede procesem vytvoření mapové aplikace pro mobilní telefon.
+<div class="vspace"></div>
+Nejdříve si připravte mapová data ve formě čtvercových obrázků - dlaždic, z nichž bude celková mapa seskládána.
+Soubory s jednotlivými dlaždicemi si pojmenujte tak, aby název obsahoval číselný index řádku a sloupce této dlaždice (např. 10_12.png, 11_1.png, atd.).
+Levá horní dlaždice má index 0:0, soubor se tedy bude jmenovat např. 0_0.png
+<div class="vspace"></div>
+Dále je dobré vědět jakým způsobem se mají přepočítávat mapové souřadnice na skutečné zemské souřadnice (zemská šířka, zemská délka).
+Tato aplikace umožňuje počítání souřadnic dvěma způsoby - systémem Mercator a bilineární transformací:
+<div class="list">
+<div class="list-item">
+Mercator - je projekcí geoidu na váleci s pyramidovým dělením dlaždic na 4 poddlaždice s vyšším rozlišením, používá jej např. projekt
+<a href="http://www.openstreetmap.org" class="ref">www.openstreetmap.org
+</a>nebo
+<a href="http://maps.google.com" class="ref">maps.google.com
+</a>.
+Pokud máte dlaždice v této projekci, stačí Vám znát tyto tři informace: X-ovou a Y-ovou souřadnici levé horní dlaždice a číslo úrovně přiblížení (0 znamená celá země v jediné dlaždici, 1 znamená celá země ve 4 dlaždicích, 2 - v 16 dlaždicích, atd.
+Tyto tři hodnoty jsou většinou součástí URL adresy pomocí níž byla konkrétní dlaždice stažena z dlaždicového serveru.
+</div><!-- .list-item -->
+<div class="list-item">
+Bilineární transformace - v tomto případě se souřadnice interpoluje ze zadaných zemských souřadnic tří rohů mapy.
+</div><!-- .list-item -->
+</div><!-- .list -->
+<div class="vspace"></div>
+Dále je nutné znát parametry mobilního zařízení, pro které mapovou aplikaci vytváříte.
+Jde především o podporu jednotlivých rozšíření API - např. jestli má Java aplikace přístup k souborovému systému, k Bluetooth a podobně.
+Pokud jste si jisti, že Vaše zařízení obsahuje podporu JSR-75-FileConnection, je možné dlaždice NEvložit do JAR archivu mobilní aplikace, ale pouze je umístit do adresáře na paměťové kartě zařízení a nechat mobilní aplikaci tyto data postupně číst pomoci JSR-75 API.
+Pozor - někteří výrobci mobilních zařízení uživateli neumožní jednorázově povolit přístup Java aplikaci k paměťové kartě (souborovému systému) a při načtení každé další dlaždice uživatele obtěžují kontrolními otázkami.
+<div class="vspace"></div>
+Pokud tedy máte připraveny všechny mapové dlaždice a informace k počítání souřadnic, můžete odpovídat na jednotlivé otázky tohoto průvodce.
+Po jeho dokončení bude ve zvoleném adresáři vytvořena dvojice souborů s příponami JAD a JAR které je možné obvyklým způsobem nahrát do mobilního zařízení s podporou Javy.
+<div class="vspace"></div>
+<div class="clear"></div>
+<div class="header-1">
+Licence
+</div><!-- .header-* -->
+<div class="vspace"></div>
+Copyleft 2008 Tomáš Darmovzal
+<div class="linebreak"></div>
+Tato aplikace je šířena zdarma včetně zdrojových kódů za podmínek licence
+<a href="http://www.gnu.org/licenses/gpl-3.0.html" class="ref">GPLv3
+</a>.
+<div class="vspace"></div>
+<div class="clear"></div>
+<div class="header-1">
+Upozornění
+</div><!-- .header-* -->
+<div class="vspace"></div>
+Tato aplikace je autorem poskytována výhradně bez datového obsahu (bez rastrových mapových podkladů) nebo s datovým obsahem šířeným pod licencí kompatibilní s GPLv3. Za datový obsah distribuovaný společně s aplikací nese zodpovědnost tvůrce konkrétního mobilního JAR balíčku (midlet suite). Pokud máte podezření, že datový obsah je šířený v rozporu s licencí či autorským zákonem, aplikaci ze svého zařízení odinstalujte.
+<div class="vspace"></div>
+<div class="clear"></div>
+<div class="header-1">
+Ovládání JavaME aplikace
+</div><!-- .header-* -->
+<div class="vspace"></div>
+<div class="list">
+<div class="list-item">
+křížek [#] - přepínání pohledu na výšku / na šířku
+</div><!-- .list-item -->
+<div class="list-item">
+hvězdička [*] - přepínání zobrazení přes celý displej
+</div><!-- .list-item -->
+<div class="list-item">
+hlavní tlačítko [FIRE] - umístění bodu pokračování trasy
+</div><!-- .list-item -->
+<div class="list-item">
+[5] - zobrazení vzdálenosti od cíle
+</div><!-- .list-item -->
+<div class="list-item">
+směrové šipky a číselná tlačítka - ovládání pohybu mapy
+</div><!-- .list-item -->
+</div><!-- .list -->
+<div class="vspace"></div>
+<div class="clear"></div>
 </div><!-- .window-text -->
 <div class="clear"></div>
 </div><!-- .window-content -->
