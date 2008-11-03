@@ -28,12 +28,9 @@ public class Jsr082Locator extends Locator implements Runnable {
 	
 	public void start() throws Exception {
 		if(this.thread != null) throw new Exception("Already started");
-/*
 		String url = "btspp://" + this.btaddr + ":1;authenticate=false;encrypt=false;master=true";
 		this.conn = (StreamConnection) Connector.open(url, Connector.READ);
 		this.is = conn.openInputStream();
-*/
-this.is = (this.getClass()).getResourceAsStream("/test.nmea");
 		this.thread = new Thread(this);
 		this.thread.start();
 	}
