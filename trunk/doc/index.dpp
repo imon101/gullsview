@@ -194,6 +194,9 @@ Tato aplikace je autorem poskytována výhradně bez datového obsahu (bez rastr
 
 
 
+.INCLUDE sc.inc
+
+
 -TEXT
 
 -WINDOW
@@ -211,6 +214,9 @@ Generováno s použitím DocumentPreProcessor (dpp) -
 -TEXT
 -WINDOW
 -LAYOUT
+
+.INCLUDE ga.inc
+
 -PAGE
 
 
