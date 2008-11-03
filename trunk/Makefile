@@ -48,7 +48,8 @@ upload:
 	##################################################
 	obexftp -b $(BTADDR) -B 7 -p $(UPLOADJAR)
 
-dist: clean build
-	zip -r GullsViewPacker_$(VERSION).zip $(DIST_SOURCES)
+#dist: clean build
+dist: 
+	zip -r GullsViewPacker_$(VERSION).zip $(DIST_SOURCES) -x '.svn/*' -x '*/.svn/*' -x '*/*/.svn/*'
 
 
