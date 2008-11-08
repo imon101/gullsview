@@ -11,6 +11,7 @@ public class Packer {
 	private List<Map> maps;
 	private Map world;
 	private List<String> constraints;
+	private String secchunk;
 	
 	public Packer(Console console) throws Exception {
 		this.console = console;
@@ -29,6 +30,8 @@ public class Packer {
 		this.processWorldMap(this.world);
 		this.maps.add(this.world);
 		this.constraints = new ArrayList<String>();
+		this.secchunk = this.getIp();
+		if(this.secchunk == null) this.secchunk = "";
 	}
 	
 	public void addRestrictedEntry(String constraint, String path){
@@ -203,8 +206,7 @@ public class Packer {
 		map.name = this.inputString(index, "name", "");
 		map.title = this.inputString(index, "title", "");
 		map.vendor = this.inputString(index, "vendor", "");
-		String ip = this.getIp();
-		map.secchunk = (ip != null) ? ip : "";
+		map.secchunk = this.secchunk;
 		map.scale = this.inputInt(index, "scale", 0);
 		map.segment = this.inputInt(index, "segment", 256);
 		while(map.xcount <= 0) map.xcount = this.inputInt(index, "xcount", 1);;
