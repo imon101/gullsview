@@ -1,4 +1,4 @@
-VERSION=0.9
+VERSION=0.9.1
 DIST_SOURCES=GullsViewPacker.jar doc LICENSE README Makefile javame/GullsView.mf javame/Makefile javame/res javame/src packer/GullsViewPacker.mf packer/Makefile packer/res packer/src
 BTADDR = 00:22:98:1E:AD:91
 UPLOADJAR = GullsView.jar
