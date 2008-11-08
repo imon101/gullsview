@@ -14,6 +14,8 @@ public class PreferenceForm extends Form {
 	private TextField locatorParamField;
 	private TextField fileSystemParamField;
 	private StringItem fileSystemConfigButton;
+	private TextField twitterUserField;
+	private TextField twitterPassField;
 	
 	public PreferenceForm(Main main){
 		super(main.getResource("preferences"));
@@ -82,6 +84,27 @@ public class PreferenceForm extends Form {
 	
 	public void setFileSystemParam(String param){
 		this.fileSystemParamField.setString(param);
+	}
+	
+	public void appendTwitterCredentials(String user, String pass){
+		this.twitterUserField = new TextField(this.main.getResource("twitter-user"), (user != null) ? user : "", 50, TextField.ANY);
+		this.append(this.twitterUserField);
+		this.twitterPassField = new TextField(this.main.getResource("twitter-pass"), (pass != null) ? pass : "", 50, TextField.PASSWORD);
+		this.append(this.twitterPassField);
+		this.empty = false;
+	}
+	
+	public String getTwitterUser(){
+		return (this.twitterUserField != null) ? this.twitterUserField.getString() : null;
+	}
+	
+	public String getTwitterPass(){
+		return (this.twitterPassField != null) ? this.twitterPassField.getString() : null;
+	}
+	
+	public void setTwitterCredentials(String user, String pass){
+		this.twitterUserField.setString((user != null) ? user : "");
+		this.twitterPassField.setString((pass != null) ? pass : "");
 	}
 }
 
