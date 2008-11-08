@@ -41,7 +41,7 @@ public class Jsr082Locator extends Locator implements Runnable {
 	
 	public void run(){
 		try {
-			this.main.locatorStatusUpdated("available");
+			this.updateStatus("available");
 			this.sb.setLength(0);
 			byte[] buffer = new byte[1024];
 			int count;
@@ -74,11 +74,11 @@ public class Jsr082Locator extends Locator implements Runnable {
 				}
 			}
 			this.flush();
-			this.main.locatorStatusUpdated("out-of-service");
+			this.updateStatus("out-of-service");
 		} catch (InterruptedIOException e){
 			// Noop
 		} catch (IOException e){
-			this.main.locatorStatusUpdated("out-of-service");
+			this.updateStatus("out-of-service");
 		} finally {
 			this.thread = null;
 			try {
@@ -164,7 +164,7 @@ System.out.println(this.sentence);
 	
 	private void process(){
 		if(Double.isNaN(this.latitude) || Double.isNaN(this.longitude)) return;
-System.out.println(this.latitude + " " + this.longitude + " " + this.orientation);
+		this.updatePosition(this.latitude, this.longitude);
 	}
 	
 	private double parseCoord(String value){

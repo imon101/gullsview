@@ -23,7 +23,7 @@ public class Jsr179Locator extends Locator implements LocationListener {
 		QualifiedCoordinates coord = location.getQualifiedCoordinates();
 		double lat = coord.getLatitude();
 		double lon = coord.getLongitude();
-		this.main.locatorPositionUpdated(lat, lon);
+		this.updatePosition(lat, lon);
 	}
 	
 	public void providerStateChanged(LocationProvider lp, int state){
@@ -34,7 +34,7 @@ public class Jsr179Locator extends Locator implements LocationListener {
 		case LocationProvider.OUT_OF_SERVICE: text = "out-of-service"; break;
 		default: return;
 		}
-		this.main.locatorStatusUpdated(text);
+		this.updateStatus(text);
 	}
 }
 
