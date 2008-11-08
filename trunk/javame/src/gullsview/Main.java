@@ -17,6 +17,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	private static final int ACTION_HIDE_MESSAGE = 4;
 	private static final int ACTION_SWITCH_LOCATOR_STATE = 5;
 	private static final int ACTION_BACKLIGHT = 6;
+	private static final int ACTION_REPORT_POSITION = 7;
 	
 	private static final int POINT_PATH_START = 1;
 	private static final int POINT_PATH_CONT = 2;
@@ -61,6 +62,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	private boolean loadedLandscape;
 	private boolean loadedFullscreen;
 	private boolean backlight;
+	private Twitter twitter;
+	private String twitterUser;
+	private String twitterPass;
 	
 	private SplashScreen splash;
 	private Form aboutForm;
@@ -71,6 +75,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	private PointForm poiForm;
 	private MapList mapList;
 	private PreferenceForm preferenceForm;
+	private TextBox twitterTextBox;
 	
 	private Command okCommand;
 	private Command exitCommand;
@@ -94,6 +99,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	private Command preferenceCommand;
 	private Command startBacklightCommand;
 	private Command stopBacklightCommand;
+	private Command reportPositionCommand;
 	
 	public void startApp(){
 		this.timer = new Timer();
@@ -141,8 +147,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				this.switchToMidpCanvasCommand = new Command(this.getResource("switch-to-midp-canvas"), Command.SCREEN, 9);
 				this.switchToM3gCanvasCommand = new Command(this.getResource("switch-to-m3g-canvas"), Command.SCREEN, 10);
 				this.preferenceCommand = new Command(this.getResource("preferences"), Command.SCREEN, 11);
-				this.aboutCommand = new Command(this.getResource("about"), Command.SCREEN, 12);
-				this.pauseCommand = new Command(this.getResource("pause"), Command.SCREEN, 13);
+				this.reportPositionCommand = new Command(this.getResource("report-position"), Command.SCREEN, 12);
+				this.aboutCommand = new Command(this.getResource("about"), Command.SCREEN, 13);
+				this.pauseCommand = new Command(this.getResource("pause"), Command.SCREEN, 14);
 				
 				this.editCommand = new Command(this.getResource("edit"), Command.ITEM, 1);
 				this.moveToCommand = new Command(this.getResource("move-to"), Command.ITEM, 2);
@@ -155,6 +162,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 					if(this.flagJsr082) this.preferenceForm.appendLocatorParam(this.locatorParam);
 				}
 				if(this.flagJsr75FC) this.preferenceForm.appendFileSystemParam(this.fileSystemParam);
+				this.preferenceForm.appendTwitterCredentials(this.twitterUser, this.twitterPass);
 				this.preferenceForm.addCommand(this.okCommand);
 				this.preferenceForm.setCommandListener(this);
 				
@@ -200,6 +208,13 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				this.mapList = new MapList(this, this.getResource("select-map"));
 				this.mapList.addCommand(this.backCommand);
 				this.mapList.setCommandListener(this);
+				
+				this.twitterTextBox = new TextBox(this.getResource("twitter-text"), "", 25, TextField.ANY);
+				this.twitterTextBox.addCommand(this.okCommand);
+				this.twitterTextBox.setCommandListener(this);
+				
+				this.twitter = new Twitter();
+				if(loaded) this.twitter.setCredentials(this.twitterUser, this.twitterPass);
 				
 				if(this.flagJsr75FC){
 					this.fileSystem = (FileSystem) this.newInstance("gullsview.FileSystemImpl");
@@ -274,6 +289,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		}
 		if(!this.preferenceForm.isEmpty()) this.canvas.addCommand(this.preferenceCommand);
 		if(this.flagNokiaBacklight) this.updateBacklightCommands();
+		this.canvas.addCommand(this.reportPositionCommand);
 		this.canvas.setCommandListener(this);
 		this.canvasType = type;
 	}
@@ -316,6 +332,8 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		out.writeDouble(latlon[1]);
 		out.writeBoolean(this.canvas.isLandscape());
 		out.writeBoolean(this.canvas.isFullscreen());
+		out.writeUTF(this.twitterUser != null ? this.twitterUser : "");
+		out.writeUTF(this.twitterPass != null ? this.twitterPass : "");
 	}
 	
 	public void load(DataInput in) throws IOException {
@@ -334,6 +352,8 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		this.loadedLongitude = in.readDouble();
 		this.loadedLandscape = in.readBoolean();
 		this.loadedFullscreen = in.readBoolean();
+		this.twitterUser = in.readUTF();
+		this.twitterPass = in.readUTF();
 	}
 	
 	public void commandAction(Command cmd, Displayable disp){
@@ -420,7 +440,13 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				} catch (Exception e){
 					this.warning("Unable to change locator", e);
 				}
+				this.twitterUser = this.preferenceForm.getTwitterUser();
+				this.twitterPass = this.preferenceForm.getTwitterPass();
+				this.twitter.setCredentials(this.twitterUser, this.twitterPass);
 				this.show(this.canvas);
+			} else if(disp == this.twitterTextBox){
+				this.show(this.canvas);
+				this.schedule(ACTION_REPORT_POSITION, null);
 			}
 		} else if(cmd == this.editCommand){
 			int index = this.overlayList.getSelectedIndex();
@@ -495,6 +521,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.startBacklight();
 		} else if(cmd == this.stopBacklightCommand){
 			this.stopBacklight();
+		} else if(cmd == this.reportPositionCommand){
+			this.twitterTextBox.setString("");
+			this.show(this.twitterTextBox);
 		}
 	}
 	
@@ -640,6 +669,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			}
 			this.updateBacklight(true);
 			break;
+		case ACTION_REPORT_POSITION:
+			this.reportPosition();
+			break;
 		}
 	}
 	
@@ -712,6 +744,12 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("backlight-warning", "Podsvícení žere baterku!!!");
 			this.setResource("level-up", "o úroveň výš");
 			this.setResource("distance", "Vzdálenost");
+			this.setResource("report-position", "Nahlásit polohu");
+			this.setResource("error-report-position", "Chyba při pokusu o nahlášení polohy");
+			this.setResource("position-reported", "Poloha úspěšně nahlášena");
+			this.setResource("twitter-user", "Twitter - uživatelské jméno");
+			this.setResource("twitter-pass", "Twitter - heslo");
+			this.setResource("twitter-text", "Kde jsem?");
 			this.setResource("", "");
 		} else {
 			this.setResource("exit", "Exit");
@@ -769,6 +807,12 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("backlight-warning", "Backlight eats up battery!!!");
 			this.setResource("level-up", "up one level");
 			this.setResource("distance", "Distance");
+			this.setResource("report-position", "Report position");
+			this.setResource("error-report-position", "Error when reporting position");
+			this.setResource("position-reported", "Position successfully reported");
+			this.setResource("twitter-user", "Twitter - username");
+			this.setResource("twitter-pass", "Twitter - password");
+			this.setResource("twitter-text", "Where am I?");
 		}
 		// this.setResource("", "");
 	}
@@ -1206,6 +1250,61 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		this.getPosition(latlon);
 		double dist = Map.distance(this.targetLatitude, this.targetLongitude, latlon[0], latlon[1]);
 		this.setMessage(this.getResource("distance") + ": " + this.getDistanceStr(dist), 5000);
+	}
+	
+	private static String doubleToString(double d, int decimal){
+		boolean neg = d < 0;
+		d = Math.abs(d);
+		long intp = (long) Math.floor(d);
+		double rest = d - intp;
+		StringBuffer sb = new StringBuffer();
+		if(neg) sb.append('-');
+		sb.append(intp);
+		if(decimal > 0){
+			sb.append('.');
+			for(int i = 0; i < decimal; i++){
+				rest *= 10;
+				long digit = ((long) rest) % 10;
+				sb.append(digit);
+			}
+		}
+		return sb.toString();
+	}
+	
+	private String getTimeAsString(long millis){
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(new Date(millis));
+		StringBuffer sb = new StringBuffer();
+		sb.append(cal.get(Calendar.YEAR));
+		sb.append('/');
+		sb.append(cal.get(Calendar.MONTH) + 1);
+		sb.append('/');
+		sb.append(cal.get(Calendar.DAY_OF_MONTH));
+		sb.append(' ');
+		sb.append(cal.get(Calendar.HOUR));
+		sb.append(':');
+		sb.append(cal.get(Calendar.MINUTE));
+		sb.append(':');
+		sb.append(cal.get(Calendar.SECOND));
+		return sb.toString();
+	}
+	
+	private void reportPosition(){
+		try {
+			double[] latlon = new double[2];
+			this.getPosition(latlon);
+			String lat = doubleToString(latlon[0], 6);
+			String lon = doubleToString(latlon[1], 6);
+			String url = "http://maps.google.com/?ie=UTF8&ll=" + Twitter.urlEncode((lat + "," + lon).getBytes("UTF-8"));
+			String time = this.getTimeAsString(System.currentTimeMillis());
+			String text = this.twitterTextBox.getString();
+			String message = text + " | " + time + " | " + lat + ":" + lon + " | " + url;
+System.out.println(message.length() + ": " + message);
+			this.twitter.send(message);
+			this.setMessage(this.getResource("position-reported"), 5000);
+		} catch (Exception e){
+			this.alert(this.getResource("error-report-position") + ": " + e.toString());
+		}
 	}
 }
 
