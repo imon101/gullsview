@@ -73,8 +73,8 @@ double tlon = Double.NaN;
 					int cellid = dis.readInt();
 					int lac = dis.readInt();
 					if((cellid == this.cellid) && (lac == this.lac)){
-						//this.main.locatorPositionUpdated(lat, lon);
-this.main.locatorPositionUpdated(lat, lon);
+						this.updatePosition(lat, lon);
+						this.main.setMessage("Cell " + cellid + ":" + lac, 5000);
 						return;
 					}
 if((cellid == this.cellid) && ((lac & 0xff00) == (this.lac & 0xff00))){
@@ -84,10 +84,11 @@ tlon = lon;
 				}
 			}
 if(!Double.isNaN(tlat) && !Double.isNaN(tlon)){
-this.main.locatorPositionUpdated(tlat, tlon);
+this.updatePosition(tlat, tlon);
+this.main.setMessage("~ " + this.cellid + ":" + this.lac, 5000);
 return;
 }
-			this.main.locatorStatusUpdated("out-of-service");
+			this.updateStatus("out-of-service");
 		} finally {
 			dis.close();
 			this.main.info("Finding BTS position - finished");
