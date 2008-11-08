@@ -63,6 +63,7 @@ public class BtsLocator extends Locator implements Runnable {
 		try {
 double tlat = Double.NaN;
 double tlon = Double.NaN;
+int tcellid = 0, tlac = 0;
 			int count = dis.readInt();
 			for(int i = 0; i < count; i++){
 				// String title = dis.readUTF();
@@ -74,18 +75,20 @@ double tlon = Double.NaN;
 					int lac = dis.readInt();
 					if((cellid == this.cellid) && (lac == this.lac)){
 						this.updatePosition(lat, lon);
-						this.main.setMessage("Cell " + cellid + ":" + lac, 5000);
+						this.main.setMessage("[" + Integer.toString(cellid, 16) + ":" + Integer.toString(lac, 16) + "]", 5000);
 						return;
 					}
 if((cellid == this.cellid) && ((lac & 0xff00) == (this.lac & 0xff00))){
 tlat = lat;
 tlon = lon;
+tcellid = cellid;
+tlac = lac;
 }
 				}
 			}
 if(!Double.isNaN(tlat) && !Double.isNaN(tlon)){
 this.updatePosition(tlat, tlon);
-this.main.setMessage("~ " + this.cellid + ":" + this.lac, 5000);
+this.main.setMessage("[" + Integer.toString(this.cellid, 16) + ":" + Integer.toString(this.lac, 16) + "] ~ " + Integer.toString(tcellid, 16) + ":" + Integer.toString(tlac, 16), 5000);
 return;
 }
 			this.updateStatus("out-of-service");
