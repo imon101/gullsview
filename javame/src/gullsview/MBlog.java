@@ -5,7 +5,7 @@ import javax.microedition.io.*;
 import java.util.*;
 
 
-public class Twitter {
+public class MBlog {
 	private static final String BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 	private static final String HEX = "0123456789ABCDEF";
 	private static final String MESSAGE_PREFIX = "GV: ";
@@ -14,7 +14,7 @@ public class Twitter {
 	private String encoding;
 	private Json json;
 	
-	public Twitter(){
+	public MBlog(){
 		this.encoding = "UTF-8";
 		this.json = new Json();
 	}
