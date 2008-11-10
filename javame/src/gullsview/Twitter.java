@@ -2,11 +2,13 @@ package gullsview;
 
 import java.io.*;
 import javax.microedition.io.*;
+import java.util.*;
 
 
 public class Twitter {
 	private static final String BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 	private static final String HEX = "0123456789ABCDEF";
+	private static final String MESSAGE_PREFIX = "GV: ";
 	
 	private String user, pass;
 	private String encoding;
@@ -72,13 +74,36 @@ public class Twitter {
 	}
 	
 	public void send(String message) throws Exception {
+/*
 		Hashtable params = new Hashtable();
-		params.put("status", message);
-		this.request("http://twitter.com/statuses/update.json", true, data, true);
+		params.put("status", MESSAGE_PREFIX + message);
+		this.request("http://twitter.com/statuses/update.json", true, params, true);
+*/
+timeline();
 	}
 	
 	public Hashtable timeline() throws Exception {
-		// http://twitter.com/statuses/friends_timeline.json
+		Object root = this.request("http://twitter.com/statuses/friends_timeline.json", false, null, true);
+		if(!(root instanceof Vector)) throw new Exception("Timeline is not an array");
+		Hashtable ret = new Hashtable();
+		Enumeration en = ((Vector) root).elements();
+		while(en.hasMoreElements()){
+			Object status = en.nextElement();
+			if(!(status instanceof Hashtable)) throw new Exception("Timeline status is not an object");
+			Hashtable statusht = (Hashtable) status;
+			Object text = statusht.get("text");
+			String textstr = (String) text;
+			if(!textstr.startsWith(MESSAGE_PREFIX)) continue;
+			textstr = textstr.substring(MESSAGE_PREFIX.length());
+			if(!(text instanceof String)) throw new Exception("Status text is not a string");
+			Object user = statusht.get("user");
+			if(!(user instanceof Hashtable)) throw new Exception("Status user is not an object");
+			Object name = ((Hashtable) user).get("name");
+			if(!(name instanceof String)) throw new Exception("Status user name is not a string");
+			String namestr = (String) name;
+			if(!ret.containsKey(name)) ret.put(name, textstr);
+		}
+		return ret;
 	}
 	
 	private Object request(String url, boolean post, Hashtable params, boolean basicAuth) throws Exception {
