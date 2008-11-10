@@ -62,9 +62,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	private boolean loadedLandscape;
 	private boolean loadedFullscreen;
 	private boolean backlight;
-	private Twitter twitter;
-	private String twitterUser;
-	private String twitterPass;
+	private MBlog mblog;
+	private String mblogUser;
+	private String mblogPass;
 	
 	private SplashScreen splash;
 	private Form aboutForm;
@@ -75,7 +75,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	private PointForm poiForm;
 	private MapList mapList;
 	private PreferenceForm preferenceForm;
-	private TextBox twitterTextBox;
+	private TextBox mblogTextBox;
 	
 	private Command okCommand;
 	private Command exitCommand;
@@ -162,7 +162,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 					if(this.flagJsr082) this.preferenceForm.appendLocatorParam(this.locatorParam);
 				}
 				if(this.flagJsr75FC) this.preferenceForm.appendFileSystemParam(this.fileSystemParam);
-				this.preferenceForm.appendTwitterCredentials(this.twitterUser, this.twitterPass);
+				this.preferenceForm.appendMBlogCredentials(this.mblogUser, this.mblogPass);
 				this.preferenceForm.addCommand(this.okCommand);
 				this.preferenceForm.setCommandListener(this);
 				
@@ -209,12 +209,12 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				this.mapList.addCommand(this.backCommand);
 				this.mapList.setCommandListener(this);
 				
-				this.twitterTextBox = new TextBox(this.getResource("twitter-text"), "", 25, TextField.ANY);
-				this.twitterTextBox.addCommand(this.okCommand);
-				this.twitterTextBox.setCommandListener(this);
+				this.mblogTextBox = new TextBox(this.getResource("mblog-text"), "", 25, TextField.ANY);
+				this.mblogTextBox.addCommand(this.okCommand);
+				this.mblogTextBox.setCommandListener(this);
 				
-				this.twitter = new Twitter();
-				if(loaded) this.twitter.setCredentials(this.twitterUser, this.twitterPass);
+				this.mblog = new MBlog();
+				if(loaded) this.mblog.setCredentials(this.mblogUser, this.mblogPass);
 				
 				if(this.flagJsr75FC){
 					this.fileSystem = (FileSystem) this.newInstance("gullsview.FileSystemImpl");
@@ -332,8 +332,8 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		out.writeDouble(latlon[1]);
 		out.writeBoolean(this.canvas.isLandscape());
 		out.writeBoolean(this.canvas.isFullscreen());
-		out.writeUTF(this.twitterUser != null ? this.twitterUser : "");
-		out.writeUTF(this.twitterPass != null ? this.twitterPass : "");
+		out.writeUTF(this.mblogUser != null ? this.mblogUser : "");
+		out.writeUTF(this.mblogPass != null ? this.mblogPass : "");
 	}
 	
 	public void load(DataInput in) throws IOException {
@@ -352,8 +352,8 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		this.loadedLongitude = in.readDouble();
 		this.loadedLandscape = in.readBoolean();
 		this.loadedFullscreen = in.readBoolean();
-		this.twitterUser = in.readUTF();
-		this.twitterPass = in.readUTF();
+		this.mblogUser = in.readUTF();
+		this.mblogPass = in.readUTF();
 	}
 	
 	public void commandAction(Command cmd, Displayable disp){
@@ -440,11 +440,11 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				} catch (Exception e){
 					this.warning("Unable to change locator", e);
 				}
-				this.twitterUser = this.preferenceForm.getTwitterUser();
-				this.twitterPass = this.preferenceForm.getTwitterPass();
-				this.twitter.setCredentials(this.twitterUser, this.twitterPass);
+				this.mblogUser = this.preferenceForm.getMBlogUser();
+				this.mblogPass = this.preferenceForm.getMBlogPass();
+				this.mblog.setCredentials(this.mblogUser, this.mblogPass);
 				this.show(this.canvas);
-			} else if(disp == this.twitterTextBox){
+			} else if(disp == this.mblogTextBox){
 				this.show(this.canvas);
 				this.schedule(ACTION_REPORT_POSITION, null);
 			}
@@ -522,8 +522,8 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		} else if(cmd == this.stopBacklightCommand){
 			this.stopBacklight();
 		} else if(cmd == this.reportPositionCommand){
-			this.twitterTextBox.setString("");
-			this.show(this.twitterTextBox);
+			this.mblogTextBox.setString("");
+			this.show(this.mblogTextBox);
 		}
 	}
 	
@@ -747,9 +747,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("report-position", "Nahlásit polohu");
 			this.setResource("error-report-position", "Chyba při pokusu o nahlášení polohy");
 			this.setResource("position-reported", "Poloha úspěšně nahlášena");
-			this.setResource("twitter-user", "Twitter - uživatelské jméno");
-			this.setResource("twitter-pass", "Twitter - heslo");
-			this.setResource("twitter-text", "Kde jsem?");
+			this.setResource("mblog-user", "Twitter - uživatelské jméno");
+			this.setResource("mblog-pass", "Twitter - heslo");
+			this.setResource("mblog-text", "Kde jsem?");
 			this.setResource("", "");
 		} else {
 			this.setResource("exit", "Exit");
@@ -810,9 +810,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("report-position", "Report position");
 			this.setResource("error-report-position", "Error when reporting position");
 			this.setResource("position-reported", "Position successfully reported");
-			this.setResource("twitter-user", "Twitter - username");
-			this.setResource("twitter-pass", "Twitter - password");
-			this.setResource("twitter-text", "Where am I?");
+			this.setResource("mblog-user", "Twitter - username");
+			this.setResource("mblog-pass", "Twitter - password");
+			this.setResource("mblog-text", "Where am I?");
 		}
 		// this.setResource("", "");
 	}
@@ -1295,12 +1295,12 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.getPosition(latlon);
 			String lat = doubleToString(latlon[0], 6);
 			String lon = doubleToString(latlon[1], 6);
-			String url = "http://maps.google.com/?ie=UTF8&ll=" + Twitter.urlEncode((lat + "," + lon).getBytes("UTF-8"));
+			String url = "http://maps.google.com/?ie=UTF8&ll=" + MBlog.urlEncode((lat + "," + lon).getBytes("UTF-8"));
 			String time = this.getTimeAsString(System.currentTimeMillis());
-			String text = this.twitterTextBox.getString();
+			String text = this.mblogTextBox.getString();
 			String message = text + " | " + time + " | " + lat + ":" + lon + " | " + url;
 System.out.println(message.length() + ": " + message);
-			this.twitter.send(message);
+			this.mblog.send(message);
 			this.setMessage(this.getResource("position-reported"), 5000);
 		} catch (Exception e){
 			this.alert(this.getResource("error-report-position") + ": " + e.toString());

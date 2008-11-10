@@ -14,8 +14,8 @@ public class PreferenceForm extends Form {
 	private TextField locatorParamField;
 	private TextField fileSystemParamField;
 	private StringItem fileSystemConfigButton;
-	private TextField twitterUserField;
-	private TextField twitterPassField;
+	private TextField mblogUserField;
+	private TextField mblogPassField;
 	
 	public PreferenceForm(Main main){
 		super(main.getResource("preferences"));
@@ -86,25 +86,25 @@ public class PreferenceForm extends Form {
 		this.fileSystemParamField.setString(param);
 	}
 	
-	public void appendTwitterCredentials(String user, String pass){
-		this.twitterUserField = new TextField(this.main.getResource("twitter-user"), (user != null) ? user : "", 50, TextField.ANY);
-		this.append(this.twitterUserField);
-		this.twitterPassField = new TextField(this.main.getResource("twitter-pass"), (pass != null) ? pass : "", 50, TextField.PASSWORD);
-		this.append(this.twitterPassField);
+	public void appendMBlogCredentials(String user, String pass){
+		this.mblogUserField = new TextField(this.main.getResource("mblog-user"), (user != null) ? user : "", 50, TextField.ANY);
+		this.append(this.mblogUserField);
+		this.mblogPassField = new TextField(this.main.getResource("mblog-pass"), (pass != null) ? pass : "", 50, TextField.PASSWORD);
+		this.append(this.mblogPassField);
 		this.empty = false;
 	}
 	
-	public String getTwitterUser(){
-		return (this.twitterUserField != null) ? this.twitterUserField.getString() : null;
+	public String getMBlogUser(){
+		return (this.mblogUserField != null) ? this.mblogUserField.getString() : null;
 	}
 	
-	public String getTwitterPass(){
-		return (this.twitterPassField != null) ? this.twitterPassField.getString() : null;
+	public String getMBlogPass(){
+		return (this.mblogPassField != null) ? this.mblogPassField.getString() : null;
 	}
 	
-	public void setTwitterCredentials(String user, String pass){
-		this.twitterUserField.setString((user != null) ? user : "");
-		this.twitterPassField.setString((pass != null) ? pass : "");
+	public void setMBlogCredentials(String user, String pass){
+		this.mblogUserField.setString((user != null) ? user : "");
+		this.mblogPassField.setString((pass != null) ? pass : "");
 	}
 }
 
