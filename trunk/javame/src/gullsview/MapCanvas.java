@@ -22,6 +22,8 @@ public abstract class MapCanvas extends Canvas {
 	protected int map;
 	protected boolean busy;
 	private boolean painting;
+	protected String[] signLabels;
+	protected int[] signCoords;
 	
 	public void init(Main main){
 		this.main = main;
@@ -106,6 +108,12 @@ public abstract class MapCanvas extends Canvas {
 			this.repaint();
 			this.serviceRepaints();
 		}
+	}
+	
+	public void setSigns(String[] labels, int[] coords){
+		this.signLabels = null;
+		this.signCoords = coords;
+		this.signLabels = labels;
 	}
 	
 	protected void keyPressed(int code){

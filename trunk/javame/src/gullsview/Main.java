@@ -18,6 +18,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	private static final int ACTION_SWITCH_LOCATOR_STATE = 5;
 	private static final int ACTION_BACKLIGHT = 6;
 	private static final int ACTION_REPORT_POSITION = 7;
+	private static final int ACTION_RECEIVE_POSITIONS = 8;
 	
 	private static final int POINT_PATH_START = 1;
 	private static final int POINT_PATH_CONT = 2;
@@ -65,6 +66,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	private MBlog mblog;
 	private String mblogUser;
 	private String mblogPass;
+	private Hashtable signs;
 	
 	private SplashScreen splash;
 	private Form aboutForm;
@@ -99,7 +101,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	private Command preferenceCommand;
 	private Command startBacklightCommand;
 	private Command stopBacklightCommand;
-	private Command reportPositionCommand;
+	private Command refreshPositionsCommand;
 	
 	public void startApp(){
 		this.timer = new Timer();
@@ -123,6 +125,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				
 				this.display = Display.getDisplay(this);
 				
+				this.signs = new Hashtable();
 				this.resources = new Hashtable();
 				this.initResources();
 				this.inOverlayList = false;
@@ -147,7 +150,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				this.switchToMidpCanvasCommand = new Command(this.getResource("switch-to-midp-canvas"), Command.SCREEN, 9);
 				this.switchToM3gCanvasCommand = new Command(this.getResource("switch-to-m3g-canvas"), Command.SCREEN, 10);
 				this.preferenceCommand = new Command(this.getResource("preferences"), Command.SCREEN, 11);
-				this.reportPositionCommand = new Command(this.getResource("report-position"), Command.SCREEN, 12);
+				this.refreshPositionsCommand = new Command(this.getResource("refresh-positions"), Command.SCREEN, 12);
 				this.aboutCommand = new Command(this.getResource("about"), Command.SCREEN, 13);
 				this.pauseCommand = new Command(this.getResource("pause"), Command.SCREEN, 14);
 				
@@ -213,7 +216,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				this.mblogTextBox.addCommand(this.okCommand);
 				this.mblogTextBox.setCommandListener(this);
 				
-				this.mblog = new MBlog();
+				this.mblog = new MBlog(this);
 				if(loaded) this.mblog.setCredentials(this.mblogUser, this.mblogPass);
 				
 				if(this.flagJsr75FC){
@@ -289,7 +292,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		}
 		if(!this.preferenceForm.isEmpty()) this.canvas.addCommand(this.preferenceCommand);
 		if(this.flagNokiaBacklight) this.updateBacklightCommands();
-		this.canvas.addCommand(this.reportPositionCommand);
+		this.canvas.addCommand(this.refreshPositionsCommand);
 		this.canvas.setCommandListener(this);
 		this.canvasType = type;
 	}
@@ -504,6 +507,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				this.setMap(this.mapList.getSelectedMap());
 				this.updateOverlay();
 				this.updateTarget();
+				this.updateSigns();
 				this.inOverlayList = false;
 				this.show(this.canvas);
 			}
@@ -521,7 +525,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.startBacklight();
 		} else if(cmd == this.stopBacklightCommand){
 			this.stopBacklight();
-		} else if(cmd == this.reportPositionCommand){
+		} else if(cmd == this.refreshPositionsCommand){
 			this.mblogTextBox.setString("");
 			this.show(this.mblogTextBox);
 		}
@@ -566,6 +570,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	
 	public void alert(String message){
 		Alert alert = new Alert(this.getResource("alert"), message, null, AlertType.ERROR);
+		alert.setTimeout(Alert.FOREVER);
 		this.show(alert);
 	}
 	
@@ -671,6 +676,10 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			break;
 		case ACTION_REPORT_POSITION:
 			this.reportPosition();
+			this.schedule(ACTION_RECEIVE_POSITIONS, null);
+			break;
+		case ACTION_RECEIVE_POSITIONS:
+			this.receivePositions();
 			break;
 		}
 	}
@@ -744,9 +753,11 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("backlight-warning", "Podsvícení žere baterku!!!");
 			this.setResource("level-up", "o úroveň výš");
 			this.setResource("distance", "Vzdálenost");
-			this.setResource("report-position", "Nahlásit polohu");
+			this.setResource("refresh-positions", "Aktualizovat polohy");
 			this.setResource("error-report-position", "Chyba při pokusu o nahlášení polohy");
 			this.setResource("position-reported", "Poloha úspěšně nahlášena");
+			this.setResource("positions-received", "Poloha ostatních zjištěna");
+			this.setResource("error-receive-positions", "Chyba při pokusu o zjištění polohy ostatních");
 			this.setResource("mblog-user", "Twitter - uživatelské jméno");
 			this.setResource("mblog-pass", "Twitter - heslo");
 			this.setResource("mblog-text", "Kde jsem?");
@@ -807,9 +818,11 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("backlight-warning", "Backlight eats up battery!!!");
 			this.setResource("level-up", "up one level");
 			this.setResource("distance", "Distance");
-			this.setResource("report-position", "Report position");
+			this.setResource("refresh-positions", "Refresh positions");
 			this.setResource("error-report-position", "Error when reporting position");
 			this.setResource("position-reported", "Position successfully reported");
+			this.setResource("positions-received", "Positions received");
+			this.setResource("error-receive-positions", "Error when trying to receive other's positions");
 			this.setResource("mblog-user", "Twitter - username");
 			this.setResource("mblog-pass", "Twitter - password");
 			this.setResource("mblog-text", "Where am I?");
@@ -1252,58 +1265,65 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		this.setMessage(this.getResource("distance") + ": " + this.getDistanceStr(dist), 5000);
 	}
 	
-	private static String doubleToString(double d, int decimal){
-		boolean neg = d < 0;
-		d = Math.abs(d);
-		long intp = (long) Math.floor(d);
-		double rest = d - intp;
-		StringBuffer sb = new StringBuffer();
-		if(neg) sb.append('-');
-		sb.append(intp);
-		if(decimal > 0){
-			sb.append('.');
-			for(int i = 0; i < decimal; i++){
-				rest *= 10;
-				long digit = ((long) rest) % 10;
-				sb.append(digit);
-			}
-		}
-		return sb.toString();
-	}
-	
-	private String getTimeAsString(long millis){
-		Calendar cal = Calendar.getInstance();
-		cal.setTime(new Date(millis));
-		StringBuffer sb = new StringBuffer();
-		sb.append(cal.get(Calendar.YEAR));
-		sb.append('/');
-		sb.append(cal.get(Calendar.MONTH) + 1);
-		sb.append('/');
-		sb.append(cal.get(Calendar.DAY_OF_MONTH));
-		sb.append(' ');
-		sb.append(cal.get(Calendar.HOUR));
-		sb.append(':');
-		sb.append(cal.get(Calendar.MINUTE));
-		sb.append(':');
-		sb.append(cal.get(Calendar.SECOND));
-		return sb.toString();
-	}
-	
 	private void reportPosition(){
 		try {
-			double[] latlon = new double[2];
-			this.getPosition(latlon);
-			String lat = doubleToString(latlon[0], 6);
-			String lon = doubleToString(latlon[1], 6);
-			String url = "http://maps.google.com/?ie=UTF8&ll=" + MBlog.urlEncode((lat + "," + lon).getBytes("UTF-8"));
-			String time = this.getTimeAsString(System.currentTimeMillis());
+			double lat, lon;
+			long time;
+			if((this.locator != null) && this.locator.isStarted()){
+				lat = this.locator.getLastLatitude();
+				lon = this.locator.getLastLongitude();
+				time = this.locator.getLastPositionTime();
+			} else {
+				double[] latlon = new double[2];
+				this.getPosition(latlon);
+				lat = latlon[0];
+				lon = latlon[1];
+				time = System.currentTimeMillis();
+			}
 			String text = this.mblogTextBox.getString();
-			String message = text + " | " + time + " | " + lat + ":" + lon + " | " + url;
-System.out.println(message.length() + ": " + message);
-			this.mblog.send(message);
+			this.mblog.report(lat, lon, time, text);
 			this.setMessage(this.getResource("position-reported"), 5000);
 		} catch (Exception e){
 			this.alert(this.getResource("error-report-position") + ": " + e.toString());
+		}
+	}
+	
+	private void receivePositions(){
+		try {
+			this.mblog.receive();
+		} catch (Exception e){
+			this.alert(this.getResource("error-receive-positions") + ": " + e.toString());
+		}
+		this.updateSigns();
+		this.setMessage(this.getResource("positions-received"), 5000);
+	}
+	
+	public void updateSignPosition(String user, double lat, double lon, String text, String time){
+		String message = user + '\n' + text + '\n' + time;
+		synchronized(this.signs){
+			this.signs.put(user, new Object[]{ message, new Double(lat), new Double(lon) });
+		}
+	}
+	
+	public void updateSigns(){
+		synchronized(this.signs){
+			int count = this.signs.size();
+			String[] texts = new String[count];
+			int[] positions = new int[2 * count];
+			int[] xy = new int[2];
+			Enumeration en = this.signs.keys();
+			for(int i = 0; en.hasMoreElements(); i++){
+				String user = (String) en.nextElement();
+				Object[] values = (Object[]) this.signs.get(user);
+				String text = (String) values[0];
+				double lat = ((Double) values[1]).doubleValue();
+				double lon = ((Double) values[2]).doubleValue();
+				texts[i] = text;
+				this.map.toLocal(lat, lon, xy);
+				positions[i * 2] = xy[0];
+				positions[i * 2 + 1] = xy[1];
+			}
+			this.canvas.setSigns(texts, positions);
 		}
 	}
 }
