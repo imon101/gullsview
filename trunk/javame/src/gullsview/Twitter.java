@@ -9,6 +9,13 @@ public class Twitter {
 	private static final String HEX = "0123456789ABCDEF";
 	
 	private String user, pass;
+	private String encoding;
+	private Json json;
+	
+	public Twitter(){
+		this.encoding = "UTF-8";
+		this.json = new Json();
+	}
 	
 	public void setCredentials(String user, String pass){
 		this.user = user;
@@ -65,34 +72,73 @@ public class Twitter {
 	}
 	
 	public void send(String message) throws Exception {
-		if(!this.areCredentialsSet()) return;
-		String data = "status=" + urlEncode(message.getBytes("UTF-8"));
+		Hashtable params = new Hashtable();
+		params.put("status", message);
+		this.request("http://twitter.com/statuses/update.json", true, data, true);
+	}
+	
+	public Hashtable timeline() throws Exception {
+		// http://twitter.com/statuses/friends_timeline.json
+	}
+	
+	private Object request(String url, boolean post, Hashtable params, boolean basicAuth) throws Exception {
 		HttpConnection conn = null;
-		OutputStream os = null;
+		Writer writer = null;
 		InputStream is = null;
 		try {
-			conn = (HttpConnection) Connector.open("http://twitter.com/statuses/update.json");
-			conn.setRequestMethod(HttpConnection.POST);
-			String token = base64Encode((this.user + ":" + this.pass).getBytes("UTF-8"));
-			conn.setRequestProperty("Authorization", "Basic " + token);
-			os = conn.openOutputStream();
-			os.write(data.getBytes("UTF-8"));
-			os.flush();
-			os.close();
-			os = null;
+			if(!post && (params != null)){
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				OutputStreamWriter osw = new OutputStreamWriter(baos, this.encoding);
+				this.encodeParams(params, osw);
+				osw.flush();
+				osw.close();
+				osw = null;
+				url += "?" + new String(baos.toByteArray(), this.encoding);
+				baos = null;
+			}
+			conn = (HttpConnection) Connector.open(url);
+			conn.setRequestMethod(post ? HttpConnection.POST : HttpConnection.GET);
+			if(basicAuth){
+				if(!this.areCredentialsSet()) throw new Exception("Credentials are not set");
+				String token = base64Encode((this.user + ":" + this.pass).getBytes(this.encoding));
+				conn.setRequestProperty("Authorization", "Basic " + token);
+			}
+			if(post && (params != null)){
+				OutputStream os = conn.openOutputStream();
+				writer = new OutputStreamWriter(os, this.encoding);
+				this.encodeParams(params, writer);
+				writer.flush();
+				writer.close();
+				os = null;
+				writer = null;
+			}
 			int code = conn.getResponseCode();
 			if((code != 200) && (code != 302))
 				throw new Exception("Unexpected response code " + code + ": " + conn.getResponseMessage());
 			is = conn.openInputStream();
-			this.pump(is, System.out, 1024);
-			System.out.println();
+			synchronized(this.json){
+				return this.json.parse(is);
+			}
 		} finally {
-			if(os != null) os.close();
+			if(writer != null) writer.close();
 			if(is != null) is.close();
 			if(conn != null) conn.close();
 		}
 	}
 	
+	private void encodeParams(Hashtable params, Writer writer) throws IOException {
+		Enumeration en = params.keys();
+		for(int i = 0; en.hasMoreElements(); i++){
+			if(i > 0) writer.write('&');
+			String key = (String) en.nextElement();
+			String value = (String) params.get(key);
+			writer.write(key);
+			writer.write('=');
+			writer.write((urlEncode(value.getBytes(this.encoding))));
+		}
+	}
+	
+	/*
 	private void pump(InputStream in, OutputStream out, int size) throws IOException {
 		byte[] buffer = new byte[size];
 		int count;
@@ -100,6 +146,7 @@ public class Twitter {
 			out.write(buffer, 0, count);
 		out.flush();
 	}
+	*/
 }
 
 
