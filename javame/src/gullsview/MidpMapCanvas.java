@@ -5,6 +5,9 @@ import javax.microedition.lcdui.game.*;
 
 
 public class MidpMapCanvas extends MapCanvas {
+	private static final int FOREGROUND = 0xcc3300;
+	private static final int BACKGROUND = 0xffffff;
+	
 	private int scrollx, scrolly;
 	private SpriteCache cache;
 	private Sprite busySprite, pointerSprite, poiSprite;
@@ -99,9 +102,11 @@ public class MidpMapCanvas extends MapCanvas {
 		
 		this.drawOverlay(g);
 		
+		this.drawSigns(g);
+		
 		this.drawSprite(g, this.pointerSprite, hw, hh);
 		
-		this.drawHLabel(g, 3, 3, this.message, false);
+		this.drawHLabel(g, 3, 3, this.message, false, FOREGROUND, BACKGROUND);
 	}
 	
 	private void processSegments(Graphics g){
@@ -204,29 +209,57 @@ public class MidpMapCanvas extends MapCanvas {
 		}
 	}
 	
-	private void drawHLabel(Graphics g, int x, int y, String text, boolean bottom){
+	private void drawHLabel(Graphics g, int x, int y, String text, boolean bottom, int fg, int bg){
 		if((text == null) || ((text.trim()).length() == 0)) return;
+		
+		int lines = 0;
+		int start = -1;
+		int end;
+		int sw = 0;
+		boolean cont = true;
+		while(cont){
+			lines++;
+			end = text.indexOf('\n', start + 1);
+			if(end < 0){
+				end = text.length() - 1;
+				cont = false;
+			}
+			int len = end - start;
+			int width = this.font.substringWidth(text, start + 1, len);
+			if(width > sw) sw = width;
+			start = end;
+		}
+		
 		int fh = this.font.getHeight();
-		int sw = this.font.stringWidth(text);
 		int vgap = 3;
 		int hgap = 6;
 		int tw = sw + (2 * hgap);
-		int th = fh + (2 * vgap);
+		int th = (fh * lines) + (2 * vgap);
+		
 		if(bottom) y -= th;
-		g.setFont(this.font);
-		g.setColor(0xcc3300);
+		
+		g.setColor(fg);
 		g.fillRect(x, y, tw, th);
-		g.setColor(0xffffff);
+		g.setColor(bg);
 		g.fillRect(x + 2, y + 2, tw - 4, th - 4);
-		g.setColor(0xcc3300);
-		g.drawString(text, x + hgap, y + vgap, Graphics.TOP | Graphics.LEFT);
+		
+		g.setColor(fg);
+		g.setFont(this.font);
+		start = -1;
+		for(int i = 0; i < lines; i++){
+			end = text.indexOf('\n', start + 1);
+			if(end < 0) end = text.length();
+			int len = (end - start) - 1;
+			g.drawSubstring(text, start + 1, len, x + hgap, y + (i * fh) + vgap, Graphics.TOP | Graphics.LEFT);
+			start = end;
+		}
 	}
 	
-	private void drawLabel(Graphics g, int x, int y, String text){
+	private void drawLabel(Graphics g, int x, int y, String text, int fg, int bg){
 		if(this.landscape){
-			this.drawHLabel(g, this.getWidth() - y, x, text, true);
+			this.drawHLabel(g, this.getWidth() - y, x, text, true, fg, bg);
 		} else {
-			this.drawHLabel(g, x, y, text, true);
+			this.drawHLabel(g, x, y, text, true, fg, bg);
 		}
 	}
 	
@@ -257,9 +290,25 @@ public class MidpMapCanvas extends MapCanvas {
 				this.mapToScreen(this.pointCoords[offset], this.pointCoords[offset + 1], tmp1);
 				String label = this.pointLabels[i];
 				if((label != null) && ((label.trim()).length() > 0))
-					this.drawLabel(g, tmp1[0], tmp1[1], label);
+					this.drawLabel(g, tmp1[0], tmp1[1], label, FOREGROUND, BACKGROUND);
 				this.drawSprite(g, this.poiSprite, tmp1[0] - poihw, tmp1[1] - poihh);
 			}
+		}
+	}
+	
+	private void drawSigns(Graphics g){
+		if(this.signLabels == null) return;
+		int[] tmp = new int[2];
+		int poihw = this.poiSprite.getWidth() / 2;
+		int poihh = this.poiSprite.getHeight() / 2;
+		int count = this.signLabels.length;
+		for(int i = 0; i < count; i++){
+			String label = this.signLabels[i];
+			int x = this.signCoords[i * 2];
+			int y = this.signCoords[i * 2 + 1];
+			this.mapToScreen(x, y, tmp);
+			this.drawLabel(g, tmp[0], tmp[1], label, 0x338800, BACKGROUND);
+			this.drawSprite(g, this.poiSprite, tmp[0] - poihw, tmp[1] - poihh);
 		}
 	}
 }

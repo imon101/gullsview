@@ -20,12 +20,14 @@ public class BtsLocator extends Locator implements Runnable {
 		this.cellid = this.lac = -1;
 		this.thread = new Thread(this);
 		this.thread.start();
+		this.setStarted(true);
 	}
 	
 	public void stop() throws Exception {
 		if(this.thread == null) throw new Exception("Not started");
 		this.thread.interrupt();
 		this.thread = null;
+		this.setStarted(false);
 	}
 	
 	public void run(){
@@ -40,6 +42,8 @@ public class BtsLocator extends Locator implements Runnable {
 			}
 		} catch (Exception e){
 			e.printStackTrace();
+		} finally {
+			this.setStarted(false);
 		}
 	}
 	

@@ -13,10 +13,12 @@ public class Jsr179Locator extends Locator implements LocationListener {
 	
 	public void start(){
 		this.locationProvider.setLocationListener(this, -1, -1, -1);
+		this.setStarted(true);
 	}
 	
 	public void stop(){
 		this.locationProvider.setLocationListener(null, -1, -1, -1);
+		this.setStarted(false);
 	}
 	
 	public void locationUpdated(LocationProvider lp, Location location){

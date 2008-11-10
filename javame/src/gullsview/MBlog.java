@@ -10,11 +10,13 @@ public class MBlog {
 	private static final String HEX = "0123456789ABCDEF";
 	private static final String MESSAGE_PREFIX = "GV: ";
 	
+	private Main main;
 	private String user, pass;
 	private String encoding;
 	private Json json;
 	
-	public MBlog(){
+	public MBlog(Main main){
+		this.main = main;
 		this.encoding = "UTF-8";
 		this.json = new Json();
 	}
@@ -74,18 +76,26 @@ public class MBlog {
 	}
 	
 	public void send(String message) throws Exception {
-/*
 		Hashtable params = new Hashtable();
 		params.put("status", MESSAGE_PREFIX + message);
-		this.request("http://twitter.com/statuses/update.json", true, params, true);
-*/
-timeline();
+		this.request("http://twitter.com/statuses/update.json", true, params, true, false);
 	}
 	
-	public Hashtable timeline() throws Exception {
-		Object root = this.request("http://twitter.com/statuses/friends_timeline.json", false, null, true);
+	private static String strip(String str, char sep, int count){
+		int start = -1;
+		for(int i = 0; i < count; i++){
+			start = str.indexOf(sep, start + 1);
+			if(start < 0) return null;
+		}
+		int end = str.indexOf(sep, start + 1);
+		String ret = (end < 0) ? str.substring(start + 1) : str.substring(start + 1, end);
+		return ret.trim();
+	}
+	
+	public void receive() throws Exception {
+		Object root = this.request("http://twitter.com/statuses/friends_timeline.json", false, null, true, true);
 		if(!(root instanceof Vector)) throw new Exception("Timeline is not an array");
-		Hashtable ret = new Hashtable();
+		Hashtable names = new Hashtable();
 		Enumeration en = ((Vector) root).elements();
 		while(en.hasMoreElements()){
 			Object status = en.nextElement();
@@ -101,12 +111,26 @@ timeline();
 			Object name = ((Hashtable) user).get("name");
 			if(!(name instanceof String)) throw new Exception("Status user name is not a string");
 			String namestr = (String) name;
-			if(!ret.containsKey(name)) ret.put(name, textstr);
+			if(names.containsKey(namestr)) continue;
+			names.put(namestr, Boolean.TRUE);
+			String where = strip(textstr, '|', 0);
+			String time = strip(textstr, '|', 1);
+			String latlon = strip(textstr, '|', 2);
+			if((where == null) || (time == null) || (latlon == null)) continue;
+			int colon = latlon.indexOf(':');
+			if(colon < 0) continue;
+			double lat, lon;
+			try {
+				lat = Double.parseDouble(latlon.substring(0, colon));
+				lon = Double.parseDouble(latlon.substring(colon + 1));
+			} catch (Exception e){
+				continue;
+			}
+			this.main.updateSignPosition(namestr, lat, lon, where, time);
 		}
-		return ret;
 	}
 	
-	private Object request(String url, boolean post, Hashtable params, boolean basicAuth) throws Exception {
+	private Object request(String url, boolean post, Hashtable params, boolean basicAuth, boolean processOutput) throws Exception {
 		HttpConnection conn = null;
 		Writer writer = null;
 		InputStream is = null;
@@ -141,8 +165,13 @@ timeline();
 			if((code != 200) && (code != 302))
 				throw new Exception("Unexpected response code " + code + ": " + conn.getResponseMessage());
 			is = conn.openInputStream();
-			synchronized(this.json){
-				return this.json.parse(is);
+			if(processOutput){
+				synchronized(this.json){
+					return this.json.parse(is);
+				}
+			} else {
+				this.pump(is, System.out, 1024);
+				return null;
 			}
 		} finally {
 			if(writer != null) writer.close();
@@ -163,7 +192,6 @@ timeline();
 		}
 	}
 	
-	/*
 	private void pump(InputStream in, OutputStream out, int size) throws IOException {
 		byte[] buffer = new byte[size];
 		int count;
@@ -171,7 +199,57 @@ timeline();
 			out.write(buffer, 0, count);
 		out.flush();
 	}
-	*/
+	
+	private static String doubleToString(double d, int decimal){
+		boolean neg = d < 0;
+		d = Math.abs(d);
+		long intp = (long) Math.floor(d);
+		double rest = d - intp;
+		StringBuffer sb = new StringBuffer();
+		if(neg) sb.append('-');
+		sb.append(intp);
+		if(decimal > 0){
+			sb.append('.');
+			for(int i = 0; i < decimal; i++){
+				rest *= 10;
+				long digit = ((long) rest) % 10;
+				sb.append(digit);
+			}
+		}
+		return sb.toString();
+	}
+	
+	private static void appendTwoDigit(StringBuffer sb, int value){
+		if((value >= 0) && (value < 10)) sb.append('0');
+		sb.append(value);
+	}
+	
+	private static String getTimeAsString(long millis){
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(new Date(millis));
+		StringBuffer sb = new StringBuffer();
+		appendTwoDigit(sb, cal.get(Calendar.YEAR));
+		sb.append('/');
+		appendTwoDigit(sb, cal.get(Calendar.MONTH) + 1);
+		sb.append('/');
+		appendTwoDigit(sb, cal.get(Calendar.DAY_OF_MONTH));
+		sb.append(' ');
+		appendTwoDigit(sb, cal.get(Calendar.HOUR_OF_DAY));
+		sb.append(':');
+		appendTwoDigit(sb, cal.get(Calendar.MINUTE));
+		sb.append(':');
+		appendTwoDigit(sb, cal.get(Calendar.SECOND));
+		return sb.toString();
+	}
+	
+	public void report(double lat, double lon, long time, String text) throws Exception {
+		String slat = doubleToString(lat, 6);
+		String slon = doubleToString(lon, 6);
+		String url = "http://maps.google.com/?ie=UTF8&ll=" + MBlog.urlEncode((slat + "," + slon).getBytes("UTF-8"));
+		String stime = getTimeAsString(System.currentTimeMillis());
+		String message = text + " | " + stime + " | " + slat + ":" + slon + " | " + url;
+		this.send(message);
+	}
 }
 
 

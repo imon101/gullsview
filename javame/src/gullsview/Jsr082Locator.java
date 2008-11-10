@@ -33,10 +33,12 @@ public class Jsr082Locator extends Locator implements Runnable {
 		this.is = conn.openInputStream();
 		this.thread = new Thread(this);
 		this.thread.start();
+		this.setStarted(true);
 	}
 	
 	public void stop() throws Exception {
 		this.thread.interrupt();
+		this.setStarted(false);
 	}
 	
 	public void run(){
@@ -81,6 +83,7 @@ public class Jsr082Locator extends Locator implements Runnable {
 			this.updateStatus("out-of-service");
 		} finally {
 			this.thread = null;
+			this.setStarted(false);
 			try {
 				this.is.close();
 			} catch (Exception e){
