@@ -12,7 +12,7 @@ public class MidpMapCanvas extends MapCanvas {
 	private SpriteCache cache;
 	private Sprite busySprite, pointerSprite, poiSprite;
 	private int rshiftx, rshifty;
-	private Image bgImage;
+	private Image bgImage, atileImage;
 	private Font font;
 	
 	public void init(Main main){
@@ -21,6 +21,7 @@ public class MidpMapCanvas extends MapCanvas {
 		this.pointerSprite= new Sprite(this.main.getResImage("/pointer.png"));
 		this.poiSprite = new Sprite(this.main.getResImage("/poi.png"));
 		this.bgImage = this.main.getResImage("/bg.jpg");
+		this.atileImage = this.main.getResImage("/atile.png");
 		this.font = Font.getDefaultFont();
 	}
 	
@@ -238,10 +239,16 @@ public class MidpMapCanvas extends MapCanvas {
 		
 		if(bottom) y -= th;
 		
+		/*
 		g.setColor(fg);
 		g.fillRect(x, y, tw, th);
 		g.setColor(bg);
 		g.fillRect(x + 2, y + 2, tw - 4, th - 4);
+		*/
+		this.tile(g, x, y, tw, th, this.atileImage);
+		g.setColor(fg);
+		g.drawRect(x, y, tw, th);
+		g.drawRect(x + 1, y + 1, tw - 2, th - 2);
 		
 		g.setColor(fg);
 		g.setFont(this.font);
@@ -310,6 +317,26 @@ public class MidpMapCanvas extends MapCanvas {
 			this.drawLabel(g, tmp[0], tmp[1], label, 0x338800, BACKGROUND);
 			this.drawSprite(g, this.poiSprite, tmp[0] - poihw, tmp[1] - poihh);
 		}
+	}
+	
+	private void tile(Graphics g, int x, int y, int width, int height, Image img){
+		int cx = g.getClipX();
+		int cy = g.getClipY();
+		int cw = g.getClipWidth();
+		int ch = g.getClipHeight();
+		g.setClip(x, y, width, height);
+		int iw = img.getWidth();
+		int ih = img.getHeight();
+		int iy = y;
+		while(iy < (y + height)){
+			int ix = x;
+			while(ix < (x + width)){
+				g.drawImage(img, ix, iy, Graphics.LEFT | Graphics.TOP);
+				ix += iw;
+			}
+			iy += ih;
+		}
+		g.setClip(cx, cy, cw, ch);
 	}
 }
 
