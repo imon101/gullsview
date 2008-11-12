@@ -25,10 +25,11 @@ Currently are implemented following features:
   SonyEricsson or Nokia devices)
 * location using internal GPS (available on devices with support of
   JSR-179 Location API)
-* location using external GPS Bluetooth module (available on devices
-  with support of JSR-82 Bluetooth API) 
+* sharing positions with friends through micro-blog service (Twitter.com)
 
 Experimentally:
+* location using external GPS Bluetooth module (available on devices
+  with support of JSR-82 Bluetooth API) 
 * approximate location using currently registered BTS (GSM signal base)
   (available on some SonyEricsson? devices)
 * 3D view 
