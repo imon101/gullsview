@@ -93,13 +93,14 @@ public class SwingConsole extends Console {
 		public LineOutput(){
 			this.setLayout(new BorderLayout());
 			this.ta = new JTextArea(40, 0);
+			this.ta.setEditable(false);
 			this.sp = new JScrollPane(this.ta);
 			this.add(this.sp);
 		}
 		
 		public void add(String line, String color){
 			this.ta.append(line + "\n");
-			this.ta.setCaretPosition((this.ta.getText()).length() - 1);
+			this.ta.setCaretPosition((this.ta.getText()).length());
 		}
 	}
 	
