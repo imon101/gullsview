@@ -26,6 +26,7 @@ public class Packer {
 		this.addRestrictedEntry("M3G", "compass.png");
 		this.addRestrictedEntry("BTS", "locator.bts");
 		this.addRestrictedEntry("BTS", "gullsview/BtsLocator.class");
+		this.addRestrictedEntry("HGE100", "gullsview/Hge100Locator.class");
 		this.world = new Map();
 		this.processWorldMap(this.world);
 		this.maps.add(this.world);
@@ -71,8 +72,12 @@ public class Packer {
 		if(this.console.inputBoolean("enable-fc", null, false)) this.constraints.add("FC");
 		if(this.console.inputBoolean("enable-bt", null, false)) this.constraints.add("BT");
 		if(this.console.inputBoolean("enable-lapi", null, false)) this.constraints.add("LAPI");
-		if((this.console instanceof PropertiesConsole) && this.console.inputBoolean("enable-m3g", null, false)) this.constraints.add("M3G");
-		if((this.console instanceof PropertiesConsole) && this.console.inputBoolean("enable-bts", null, false)) this.constraints.add("BTS");
+		boolean experimental = this.console.inputBoolean("enable-experimental", null, false);
+		if(experimental){
+			if(this.console.inputBoolean("enable-m3g", null, false)) this.constraints.add("M3G");
+			if(this.console.inputBoolean("enable-bts", null, false)) this.constraints.add("BTS");
+			if(this.console.inputBoolean("enable-hge100", null, false)) this.constraints.add("HGE100");
+		}
 		
 		int count = this.console.inputInt("map-count", null, 1);
 		for(int i = 0; i < count; i++){
