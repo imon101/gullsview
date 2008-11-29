@@ -34,8 +34,8 @@ public abstract class NmeaLocator extends Locator implements Runnable {
 	public abstract void open() throws IOException;
 	
 	public void stop() throws Exception {
-		this.thread.interrupt();
-		this.setStarted(false);
+		// this.thread.interrupt();
+		this.conn.close();
 	}
 	
 	public void run(){
@@ -80,7 +80,6 @@ public abstract class NmeaLocator extends Locator implements Runnable {
 			this.updateStatus("out-of-service");
 		} finally {
 			this.thread = null;
-			this.setStarted(false);
 			try {
 				if(this.os != null) this.os.close();
 			} catch (Exception e){
@@ -98,6 +97,7 @@ public abstract class NmeaLocator extends Locator implements Runnable {
 				this.main.warning("Cannot close nmea locator connection", e);
 			}
 			this.conn = null;
+			this.setStarted(false);
 		}
 	}
 	
@@ -168,6 +168,7 @@ public abstract class NmeaLocator extends Locator implements Runnable {
 	
 	private void process(){
 		if(Double.isNaN(this.latitude) || Double.isNaN(this.longitude)) return;
+		if((this.latitude == 0) && (this.longitude == 0)) return;
 		this.updatePosition(this.latitude, this.longitude);
 	}
 	

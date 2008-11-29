@@ -13,8 +13,8 @@ public class Hge100Locator extends NmeaLocator {
 	}
 	
 	public void start() throws Exception {
-		this.send("STA");
 		super.start();
+		this.send("STA");
 	}
 	
 	public void stop() throws Exception {

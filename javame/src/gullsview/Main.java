@@ -69,6 +69,8 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	private String mblogUser;
 	private String mblogPass;
 	private Hashtable signs;
+	private String[] logBuffer = new String[100];
+	private int logIndex;
 	
 	private SplashScreen splash;
 	private Form aboutForm;
@@ -104,6 +106,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	private Command startBacklightCommand;
 	private Command stopBacklightCommand;
 	private Command refreshPositionsCommand;
+	private Command logCommand;
 	
 	public void startApp(){
 		this.timer = new Timer();
@@ -162,6 +165,8 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				this.setTargetCommand = new Command(this.getResource("set-target"), Command.ITEM, 3);
 				this.removeCommand = new Command(this.getResource("remove"), Command.ITEM, 4);
 				
+				this.logCommand = new Command(this.getResource("log"), Command.SCREEN, 1);
+				
 				this.preferenceForm = new PreferenceForm(this);
 				if(this.flagJsr082 || this.flagJsr179 || this.flagBtsLocator || this.flagHge100Locator){
 					this.preferenceForm.appendLocatorTypeChoice(this.flagJsr082, this.flagJsr179, this.flagBtsLocator, this.flagHge100Locator, this.locatorType);
@@ -174,6 +179,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				
 				this.aboutForm = this.createAboutForm();
 				this.aboutForm.addCommand(this.backCommand);
+				this.aboutForm.addCommand(this.logCommand);
 				this.aboutForm.setCommandListener(this);
 				
 				this.overlayList = new OverlayList(this, this.getResource("overlay"));
@@ -533,6 +539,8 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		} else if(cmd == this.refreshPositionsCommand){
 			this.mblogTextBox.setString("");
 			this.show(this.mblogTextBox);
+		} else if(cmd == this.logCommand){
+			this.showLog();
 		}
 	}
 	
@@ -582,7 +590,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	public void error(String message, Exception e){
 		String text = "ERROR: " + message;
 		if(e != null) text += " " + e.toString();
-		System.err.println(text);
+		this.log(text);
 		e.printStackTrace();
 		StringBuffer sb = new StringBuffer();
 		sb.append(this.getResource("error-text"));
@@ -606,12 +614,20 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	public void warning(String message, Exception e){
 		String text = "WARNING: " + message;
 		if(e != null) text += " " + e.toString();
-		System.err.println(text);
+		this.log(text);
 		if(e != null) e.printStackTrace();
 	}
 	
+	private void log(String message){
+		synchronized(this.logBuffer){
+			this.logBuffer[this.logIndex++] = message;
+			this.logIndex %= this.logBuffer.length;
+		}
+		System.out.println(message);
+	}
+	
 	public void info(String message){
-		System.out.println("INFO: " + message);
+		this.log("INFO: " + message);
 	}
 	
 	public void show(Displayable disp){
@@ -767,6 +783,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("mblog-user", "Twitter - uživatelské jméno");
 			this.setResource("mblog-pass", "Twitter - heslo");
 			this.setResource("mblog-text", "Kde jsem?");
+			this.setResource("started", "běží");
+			this.setResource("stopped", "ukončen");
+			this.setResource("log", "Log");
 			this.setResource("", "");
 		} else {
 			this.setResource("exit", "Exit");
@@ -833,6 +852,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("mblog-user", "Twitter - username");
 			this.setResource("mblog-pass", "Twitter - password");
 			this.setResource("mblog-text", "Where am I?");
+			this.setResource("started", "started");
+			this.setResource("stopped", "stopped");
+			this.setResource("log", "Log");
 		}
 		// this.setResource("", "");
 	}
@@ -913,7 +935,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	}
 	
 	private void setPosition(double lat, double lon){
-		this.info("Position: " + lat+ ", " + lon);
+		// this.info("Position: " + lat+ ", " + lon);
 		int[] xy = new int[2];
 		this.map.toLocal(lat, lon, xy);
 		this.canvas.setPosition(xy[0], xy[1]);
@@ -1195,6 +1217,10 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		this.info("Locator initialized");
 	}
 	
+	public void setMessage(String message){
+		this.setMessage(message, 5000);
+	}
+	
 	public void setMessage(String message, int timeout){
 		this.canvas.setMessage(message);
 		this.schedule(ACTION_HIDE_MESSAGE, message, timeout);
@@ -1205,7 +1231,11 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	}
 	
 	public void locatorStatusUpdated(String status){
-		this.setMessage("GPS: " + this.getResource(status), 3000);
+		this.setMessage(this.getResource("locator") + ": " + this.getResource(status));
+	}
+	
+	public void locatorStarted(boolean on){
+		this.setMessage(this.getResource("locator") + ": " + this.getResource(on ? "started" : "stopped"));
 	}
 	
 	private void updateLocatorCommands(){
@@ -1335,6 +1365,22 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			}
 			this.canvas.setSigns(texts, positions);
 		}
+	}
+	
+	private void showLog(){
+		Form form = new Form(this.getResource("log"));
+		synchronized(this.logBuffer){
+			for(int i = 0; i < this.logBuffer.length; i++){
+				int index = this.logIndex - i;
+				if(index < 0) index += this.logBuffer.length;
+				String message = this.logBuffer[index];
+				if(message == null) continue;
+				form.append(message);
+			}
+		}
+		form.addCommand(this.backCommand);
+		form.setCommandListener(this);
+		this.show(form);
 	}
 }
 

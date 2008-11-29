@@ -53,6 +53,7 @@ public abstract class Locator {
 	
 	protected void setStarted(boolean on){
 		this.started = on;
+		this.main.locatorStarted(on);
 	}
 }
 
