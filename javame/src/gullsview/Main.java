@@ -31,6 +31,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	public static final int LOCATOR_JSR179 = 1;
 	public static final int LOCATOR_JSR082 = 2;
 	public static final int LOCATOR_BTS = 3;
+	public static final int LOCATOR_HGE100 = 4;
 	
 	public boolean flagInit = false;
 	public boolean flagJsr75FC; // FileConn
@@ -38,6 +39,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 	public boolean flagJsr179; // LAPI
 	public boolean flagJsr184; // M3G
 	public boolean flagBtsLocator;
+	public boolean flagHge100Locator;
 	public boolean flagNokiaBacklight;
 	
 	private Display display;
@@ -112,6 +114,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				this.flagJsr179 = this.classExists("javax.microedition.location.Location") && this.classExists("gullsview.Jsr179Locator");
 				this.flagJsr184 = this.classExists("javax.microedition.m3g.Graphics3D") && this.classExists("gullsview.M3gMapCanvas");
 				this.flagBtsLocator = this.classExists("gullsview.BtsLocator");
+				this.flagHge100Locator = this.classExists("gullsview.Hge100Locator");
 				this.flagNokiaBacklight = this.classExists("com.nokia.mid.ui.DirectGraphics");
 				
 				boolean loaded = false;
@@ -160,8 +163,8 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 				this.removeCommand = new Command(this.getResource("remove"), Command.ITEM, 4);
 				
 				this.preferenceForm = new PreferenceForm(this);
-				if(this.flagJsr082 || this.flagJsr179){
-					this.preferenceForm.appendLocatorTypeChoice(this.flagJsr082, this.flagJsr179, this.flagBtsLocator, this.locatorType);
+				if(this.flagJsr082 || this.flagJsr179 || this.flagBtsLocator || this.flagHge100Locator){
+					this.preferenceForm.appendLocatorTypeChoice(this.flagJsr082, this.flagJsr179, this.flagBtsLocator, this.flagHge100Locator, this.locatorType);
 					if(this.flagJsr082) this.preferenceForm.appendLocatorParam(this.locatorParam);
 				}
 				if(this.flagJsr75FC) this.preferenceForm.appendFileSystemParam(this.fileSystemParam);
@@ -348,6 +351,8 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 		this.locatorType = in.readInt();
 		if((this.locatorType == LOCATOR_JSR179) && !this.flagJsr179) this.locatorType = LOCATOR_NONE;
 		if((this.locatorType == LOCATOR_JSR082) && !this.flagJsr082) this.locatorType = LOCATOR_NONE;
+		if((this.locatorType == LOCATOR_BTS) && !this.flagBtsLocator) this.locatorType = LOCATOR_NONE;
+		if((this.locatorType == LOCATOR_HGE100) && !this.flagHge100Locator) this.locatorType = LOCATOR_NONE;
 		this.locatorParam = in.readUTF();
 		this.locatorStarted = in.readBoolean();
 		this.loadedMapName = in.readUTF();
@@ -744,6 +749,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("locator-jsr082", "Externí GPS přes Bluetooth");
 			this.setResource("locator-jsr179", "Vestavěná GPS");
 			this.setResource("locator-bts", "Podle GSM vysílačů");
+			this.setResource("locator-hge100", "SonyEricsson HGE-100");
 			this.setResource("locator-param", "Bluetooth adresa GPS");
 			this.setResource("filesystem-param", "Cesta k adresáři s daty");
 			this.setResource("filesystem-config", "Konfigurovat adresář s daty");
@@ -809,6 +815,7 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			this.setResource("locator-jsr082", "GPS over Bluetooth");
 			this.setResource("locator-jsr179", "Built-in GPS");
 			this.setResource("locator-bts", "Using BTS");
+			this.setResource("locator-hge100", "SonyEricsson HGE-100");
 			this.setResource("locator-param", "GPS Bluetooth address");
 			this.setResource("filesystem-param", "Path to data directory");
 			this.setResource("filesystem-config", "Configure data directory");
@@ -1164,6 +1171,9 @@ public class Main extends MIDlet implements CommandListener, ItemCommandListener
 			break;
 		case LOCATOR_BTS:
 			if(this.flagBtsLocator) className = "gullsview.BtsLocator";
+			break;
+		case LOCATOR_HGE100:
+			if(this.flagBtsLocator) className = "gullsview.Hge100Locator";
 			break;
 		}
 		if(className == null) return;

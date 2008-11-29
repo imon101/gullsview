@@ -27,7 +27,7 @@ public class PreferenceForm extends Form {
 		return this.empty;
 	}
 	
-	public void appendLocatorTypeChoice(boolean jsr082, boolean jsr179, boolean bts, int locatorType){
+	public void appendLocatorTypeChoice(boolean jsr082, boolean jsr179, boolean bts, boolean hge100, int locatorType){
 		this.locator = new ChoiceGroup(this.main.getResource("locator"), Choice.EXCLUSIVE);
 		this.locatorTypes = new Vector();
 		this.locator.append(this.main.getResource("locator-none"), null);
@@ -43,6 +43,10 @@ public class PreferenceForm extends Form {
 		if(bts){
 			this.locator.append(this.main.getResource("locator-bts"), null);
 			this.locatorTypes.addElement(new Integer(Main.LOCATOR_BTS));
+		}
+		if(hge100){
+			this.locator.append(this.main.getResource("locator-hge100"), null);
+			this.locatorTypes.addElement(new Integer(Main.LOCATOR_HGE100));
 		}
 		for(int i = 0; i < this.locatorTypes.size(); i++){
 			if(((Integer) this.locatorTypes.elementAt(i)).intValue() == locatorType)
