@@ -49,6 +49,7 @@ public abstract class MapCanvas extends Canvas {
 	}
 	
 	public void setPosition(int cx, int cy){
+		if((this.cx == cx) && (this.cy == cy)) return;
 		this.cx = cx;
 		this.cy = cy;
 		this.correctPosition();
