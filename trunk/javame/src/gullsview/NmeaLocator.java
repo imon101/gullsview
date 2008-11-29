@@ -6,9 +6,9 @@ import javax.microedition.io.*;
 
 public abstract class NmeaLocator extends Locator implements Runnable {
 	private Thread thread;
-	private StreamConnection conn;
-	private InputStream is;
-	private OutputStream os;
+	protected StreamConnection conn;
+	protected InputStream is;
+	protected OutputStream os;
 	private StringBuffer sb;
 	private boolean started;
 	private String sentence;
