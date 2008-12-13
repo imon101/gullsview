@@ -1,3 +1,5 @@
+# $Id:$
+
 WTK = /opt/wtk-2.5.2
 PREVERIFY = $(WTK)/bin/preverify
 EMULATOR = $(WTK)/bin/emulator
