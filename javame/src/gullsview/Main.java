@@ -1,5 +1,5 @@
 /*
-$Id$
+$Id : XXXXXX $
 */
 
 package gullsview;
