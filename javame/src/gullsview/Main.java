@@ -1,7 +1,4 @@
-/*
-$Id : XXXXXX $
-
-*/
+/* $Id:$ */
 
 package gullsview;
 
