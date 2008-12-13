@@ -96,6 +96,7 @@ this.main.setMessage("[" + Integer.toString(this.cellid, 16) + ":" + Integer.toS
 return;
 }
 			this.updateStatus("out-of-service");
+this.main.setMessage(this.cellid + ":" + this.lac);
 		} finally {
 			dis.close();
 			this.main.info("Finding BTS position - finished");
@@ -113,11 +114,18 @@ return;
 	}
 	
 	private int getCellId(){
-		return this.getIntProperty("com.sonyericsson.net.cellid", 16);
+		int cellid = -1;
+		cellid = this.getIntProperty("com.sonyericsson.net.cellid", 16);
+		if(cellid < 0) cellid = this.getIntProperty("com.nokia.mid.cellid", 16);
+		if(cellid < 0) cellid = this.getIntProperty("Cell-ID", 16);
+		return cellid;
 	}
 	
 	private int getLAC(){
-		return this.getIntProperty("com.sonyericsson.net.lac", 16);
+		int lac = -1;
+		lac = this.getIntProperty("com.sonyericsson.net.lac", 16);
+		if(lac < 0) lac = this.getIntProperty("com.nokia.mid.lac", 16);
+		return lac;
 	}
 }
 
